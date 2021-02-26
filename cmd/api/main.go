@@ -18,7 +18,7 @@ func main() {
 
 	db, err := store.Connect(conf.MySQL)
 	if err != nil {
-		log.Fatalf("failed to connect to mySQL db: %v", err)
+		log.Fatalf("failed to connect to mysql db: %v", err)
 	}
 	s := store.New(db)
 
