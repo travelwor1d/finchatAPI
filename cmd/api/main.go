@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/nkanders/finchat-api/internal/appconfig"
+	"github.com/nkanders/finchat-api/internal/store"
 	"github.com/nkanders/finchat-api/pkg/config"
 )
 
@@ -14,6 +15,14 @@ func main() {
 	if err := config.LoadConfig(&conf, "configs/config.yaml"); err != nil {
 		log.Fatalf("failed to load app configuration: %v", err)
 	}
+
+	db, err := store.Connect(conf.MySQL)
+	if err != nil {
+		log.Fatalf("failed to connect to mySQL db: %v", err)
+	}
+	s := store.New(db)
+
+	_ = s
 
 	app := fiber.New()
 
