@@ -1,0 +1,6 @@
+port: 5432
+secret1: ${SOME_SECRET}
+secret2: ${SECRET}
+db:
+  user: admin
+  password: ${DB_PASSWORD}
