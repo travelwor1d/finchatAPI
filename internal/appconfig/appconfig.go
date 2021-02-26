@@ -1,11 +1,7 @@
 package appconfig
 
 type MySQL struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	DB       string
+	ConnectionString string
 }
 
 type AppConfig struct {
