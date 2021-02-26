@@ -2,7 +2,7 @@ package store
 
 import (
 	"github.com/jmoiron/sqlx"
-	"github.com/nkanders/finchat-api/internal/appconfig"
+	"github.com/finchatapp/finchat-api/internal/appconfig"
 
 	// Importing mySQL driver
 	_ "github.com/go-sql-driver/mysql"

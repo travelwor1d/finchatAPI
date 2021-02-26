@@ -1,4 +1,4 @@
-module github.com/nkanders/finchat-api
+module github.com/finchatapp/finchat-api
 
 go 1.16
 

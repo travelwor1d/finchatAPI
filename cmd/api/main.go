@@ -5,9 +5,9 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/nkanders/finchat-api/internal/appconfig"
-	"github.com/nkanders/finchat-api/internal/store"
-	"github.com/nkanders/finchat-api/pkg/config"
+	"github.com/finchatapp/finchat-api/internal/appconfig"
+	"github.com/finchatapp/finchat-api/internal/store"
+	"github.com/finchatapp/finchat-api/pkg/config"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 
 	db, err := store.Connect(conf.MySQL)
 	if err != nil {
-		log.Fatalf("failed to connect to mysql db: %v", err)
+		log.Fatalf("failed to connect to mySQL db: %v", err)
 	}
 	s := store.New(db)
 
