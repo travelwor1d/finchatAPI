@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/gofiber/fiber/v2"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/config"
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 
 	db, err := store.Connect(conf.MySQL)
 	if err != nil {
-		log.Fatalf("failed to connect to mySQL db: %v", err)
+		log.Printf("failed to connect to mySQL db: %v", err)
 	}
 	s := store.New(db)
 
