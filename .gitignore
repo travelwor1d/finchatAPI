@@ -1,2 +1,5 @@
 /api
 .env
+
+# Ensure somebody don't commit credentails in json file
+/*.json
