@@ -10,6 +10,7 @@ import (
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gookit/validate"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -41,17 +42,21 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 }
 
 type RegisterPayload struct {
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
-	Phone     *string `json:"phone"`
-	Email     string  `json:"email"`
-	Password  string  `json:"password"`
+	FirstName string  `json:"firstName" validate:"required"`
+	LastName  string  `json:"lastName" validate:"required"`
+	Phone     *string `json:"phone" validate:"-"`
+	Email     string  `json:"email" validate:"required|email"`
+	Password  string  `json:"password" validate:"required|minLen:6"`
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	var p RegisterPayload
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+	}
+	v := validate.Struct(p)
+	if !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 	user := &model.User{FirstName: p.FirstName, LastName: p.LastName, Phone: p.Phone, Email: p.Email, Type: "USER"}
 	user, err := ctr.store.CreateUser(c.Context(), user, p.Password)
