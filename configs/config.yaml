@@ -1,3 +1,6 @@
 port: ${PORT}
+auth:
+  secret: ${AUTH_SECRET}
+  duration: 5
 mysql:
   connectionString: ${MYSQL_CONN_STR}
