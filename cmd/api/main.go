@@ -60,6 +60,7 @@ func main() {
 	apiv1.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("v1")
 	})
+	apiv1.Get("/goats:invite", ctr.InviteGoat)
 
 	addr := fmt.Sprintf(":%s", conf.Port)
 	log.Fatal(app.Listen(addr))

@@ -11,19 +11,20 @@ import (
 
 func Protected(jm *token.JWTManager) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		token := c.Cookies("token")
-		if token == "" {
+		idToken := c.Cookies("token")
+		if idToken == "" {
 			auth := c.Get("Authorization")
 			splitAuth := strings.Split(auth, "Bearer ")
 			if len(splitAuth) != 2 {
 				return httperr.New(codes.Omit, fiber.StatusBadRequest, "missing or malformed JWT").Send(c)
 			}
-			token = splitAuth[1]
+			idToken = splitAuth[1]
 		}
-		_, err := jm.Verify(token)
+		claims, err := jm.Verify(idToken)
 		if err != nil {
 			return httperr.New(codes.Omit, fiber.StatusUnauthorized, "invalid or expired JWT").Send(c)
 		}
+		c.Locals("claims", claims)
 		return c.Next()
 	}
 }

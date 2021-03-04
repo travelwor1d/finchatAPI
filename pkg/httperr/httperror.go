@@ -2,7 +2,7 @@ package httperr
 
 import "github.com/gofiber/fiber/v2"
 
-type httperr struct {
+type HTTPErr struct {
 	// Application specific code.
 	Code int `json:"code,omitempty"`
 	// HTTP status.
@@ -12,8 +12,8 @@ type httperr struct {
 	Detail  string `json:"detail,omitempty"`
 }
 
-func New(code, status int, message string, detail ...interface{}) httperr {
-	e := httperr{Code: code, Status: status, Message: message}
+func New(code, status int, message string, detail ...interface{}) *HTTPErr {
+	e := &HTTPErr{Code: code, Status: status, Message: message}
 	if len(detail) != 1 {
 		return e
 	}
@@ -26,7 +26,7 @@ func New(code, status int, message string, detail ...interface{}) httperr {
 	return e
 }
 
-func (e *httperr) SetDetail(detail interface{}) *httperr {
+func (e *HTTPErr) SetDetail(detail interface{}) *HTTPErr {
 	switch d := detail.(type) {
 	case string:
 		e.Detail = d
@@ -36,10 +36,10 @@ func (e *httperr) SetDetail(detail interface{}) *httperr {
 	return e
 }
 
-func (e httperr) Send(c *fiber.Ctx) error {
+func (e HTTPErr) Send(c *fiber.Ctx) error {
 	return c.Status(e.Status).JSON(e)
 }
 
-func (e httperr) Error() string {
+func (e HTTPErr) Error() string {
 	return e.Message
 }
