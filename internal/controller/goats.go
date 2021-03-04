@@ -18,7 +18,7 @@ func (ctr *Ctr) InviteGoat(c *fiber.Ctx) error {
 		if err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
-		return c.JSON(fiber.Map{"code": code})
+		return c.JSON(fiber.Map{"inviteCode": code})
 	} else if user.Type == "GOAT" {
 		return errInternal.SetDetail("goat not supported").Send(c)
 	}

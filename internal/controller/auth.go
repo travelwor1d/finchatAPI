@@ -44,7 +44,7 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 type RegisterPayload struct {
 	FirstName string  `json:"firstName" validate:"required"`
 	LastName  string  `json:"lastName" validate:"required"`
-	Phone     *string `json:"phone" validate:"-"`
+	Phone     *string `json:"phone" validate:"required"`
 	Email     string  `json:"email" validate:"required|email"`
 	Password  string  `json:"password" validate:"required|minLen:6"`
 }

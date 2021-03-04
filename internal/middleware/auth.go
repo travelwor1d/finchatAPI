@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/finchatapp/finchat-api/pkg/codes"
@@ -16,13 +17,13 @@ func Protected(jm *token.JWTManager) fiber.Handler {
 			auth := c.Get("Authorization")
 			splitAuth := strings.Split(auth, "Bearer ")
 			if len(splitAuth) != 2 {
-				return httperr.New(codes.Omit, fiber.StatusBadRequest, "missing or malformed JWT").Send(c)
+				return httperr.New(codes.Omit, http.StatusUnauthorized, "missing or malformed JWT").Send(c)
 			}
 			idToken = splitAuth[1]
 		}
 		claims, err := jm.Verify(idToken)
 		if err != nil {
-			return httperr.New(codes.Omit, fiber.StatusUnauthorized, "invalid or expired JWT").Send(c)
+			return httperr.New(codes.Omit, http.StatusUnauthorized, "invalid or expired JWT").Send(c)
 		}
 		c.Locals("claims", claims)
 		return c.Next()
