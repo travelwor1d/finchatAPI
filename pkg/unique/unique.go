@@ -6,11 +6,6 @@ var chars = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz01234567
 
 // New returns a new random string of the provided length.
 func New(length int) string {
-	return NewLenChars(length)
-}
-
-// NewLenChars returns a new random string of the provided length.
-func NewLenChars(length int) string {
 	if length == 0 {
 		return ""
 	}

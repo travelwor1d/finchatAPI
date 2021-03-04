@@ -58,8 +58,27 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
-	user := &model.User{FirstName: p.FirstName, LastName: p.LastName, Phone: p.Phone, Email: p.Email, Type: "USER"}
-	user, err := ctr.store.CreateUser(c.Context(), user, p.Password)
+
+	var userType string
+	inviteCode := c.Query("inviteCode")
+	if inviteCode != "" {
+		userType = "GOAT"
+		if len(inviteCode) != 6 {
+			return httperr.New(codes.Omit, http.StatusBadRequest, "invite code is 6 chars long string").Send(c)
+		}
+		found, err := ctr.store.CheckInviteCode(c.Context(), inviteCode)
+		if err != nil {
+			return errInternal.SetDetail(err).Send(c)
+		}
+		if !found {
+			return httperr.New(codes.Omit, http.StatusBadRequest, "invalid invite code").Send(c)
+		}
+	} else {
+		userType = "USER"
+	}
+
+	user := &model.User{FirstName: p.FirstName, LastName: p.LastName, Phone: p.Phone, Email: p.Email, Type: userType}
+	user, err := ctr.store.CreateUser(c.Context(), user, p.Password, inviteCode)
 	if errors.Is(err, store.ErrAlreadyExists) {
 		return httperr.New(
 			codes.EmailAlreadyTaken,

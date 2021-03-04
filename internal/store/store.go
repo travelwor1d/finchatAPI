@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/finchatapp/finchat-api/internal/model"
-	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -82,47 +81,6 @@ func (s *Store) GetUserCredsByEmail(ctx context.Context, email string) (*model.C
 		return nil, err
 	}
 	return &creds, nil
-}
-
-func (s *Store) CreateUser(ctx context.Context, user *model.User, password string) (*model.User, error) {
-	const query = `
-	INSERT INTO users(first_name, last_name, phone, email, user_type, profile_avatar)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`
-	tx, err := s.Begin()
-	if err != nil {
-		return nil, err
-	}
-	_, err = tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phone, user.Email, user.Type, user.ProfileAvatar)
-	if err != nil {
-		me, ok := err.(*mysql.MySQLError)
-		if !ok {
-			tx.Rollback()
-			return nil, err
-		}
-		if me.Number == 1062 {
-			tx.Rollback()
-			return nil, ErrAlreadyExists
-		}
-		tx.Rollback()
-		return nil, err
-	}
-
-	user, err = s.WithTx(tx).GetUserByEmail(ctx, user.Email)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	err = s.WithTx(tx).SetPassword(ctx, user.ID, password)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	if err = tx.Commit(); err != nil {
-		return nil, err
-	}
-	return user, nil
 }
 
 func (s *Store) SetPassword(ctx context.Context, id int, password string) error {

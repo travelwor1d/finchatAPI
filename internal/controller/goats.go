@@ -1,10 +1,6 @@
 package controller
 
 import (
-	"net/http"
-
-	"github.com/finchatapp/finchat-api/pkg/codes"
-	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -15,10 +11,16 @@ func (ctr *Ctr) InviteGoat(c *fiber.Ctx) error {
 	}
 	user, err := ctr.store.GetUser(c.Context(), id)
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusInternalServerError, "").Send(c)
+		return errInternal.SetDetail(err).Send(c)
 	}
 	if user.Type == "USER" {
-
+		code, err := ctr.store.CreateGoatInviteCode(c.Context(), user.ID)
+		if err != nil {
+			return errInternal.SetDetail(err).Send(c)
+		}
+		return c.JSON(fiber.Map{"code": code})
+	} else if user.Type == "GOAT" {
+		return errInternal.SetDetail("goat not supported").Send(c)
 	}
-	return nil
+	return errInternal.SetDetail("unknown user type").Send(c)
 }
