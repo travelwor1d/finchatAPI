@@ -20,19 +20,19 @@ func (s *Store) CreateGoatInviteCode(ctx context.Context, userID int) (string, e
 	return code, nil
 }
 
-func (s *Store) CheckInviteCode(ctx context.Context, code string) (bool, error) {
+func (s *Store) GetInviteCodeStatus(ctx context.Context, code string) (string, bool, error) {
 	const query = `
 	SELECT status FROM goat_invite_codes WHERE invite_code = ?
 	`
 	var status string
 	err := s.db.GetContext(ctx, &status, query, code)
 	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
+		return "", false, nil
 	}
 	if err != nil {
-		return false, err
+		return "", false, err
 	}
-	return status == "ACTIVE", nil
+	return status, true, nil
 }
 
 func (s *Store) UseInviteCode(ctx context.Context, code string, userID int) error {

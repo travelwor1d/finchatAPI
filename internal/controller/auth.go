@@ -66,12 +66,18 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		if len(inviteCode) != 6 {
 			return httperr.New(codes.Omit, http.StatusBadRequest, "invite code is 6 chars long string").Send(c)
 		}
-		found, err := ctr.store.CheckInviteCode(c.Context(), inviteCode)
+		status, found, err := ctr.store.GetInviteCodeStatus(c.Context(), inviteCode)
 		if err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
 		if !found {
 			return httperr.New(codes.Omit, http.StatusBadRequest, "invalid invite code").Send(c)
+		}
+		if status == "USED" {
+			return httperr.New(codes.Omit, http.StatusBadRequest, "invite code was already used").Send(c)
+		}
+		if status == "EXPIRED" {
+			return httperr.New(codes.Omit, http.StatusBadRequest, "invite code expired")
 		}
 	} else {
 		userType = "USER"

@@ -61,6 +61,7 @@ func main() {
 		return c.SendString("v1")
 	})
 	apiv1.Get("/goats:invite", ctr.InviteGoat)
+	apiv1.Get("/goats/invite-codes/:inviteCode", ctr.VerifyInviteCode)
 
 	addr := fmt.Sprintf(":%s", conf.Port)
 	log.Fatal(app.Listen(addr))
