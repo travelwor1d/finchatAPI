@@ -1,0 +1,19 @@
+name: e2e tests
+
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check if builds
+        run: |
+          go build ./...
+
+      - name: Run e2e tests
+        run: |
+          make test-e2e
