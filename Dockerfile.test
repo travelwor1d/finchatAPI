@@ -1,0 +1,8 @@
+FROM golang:1.16
+
+WORKDIR /go/src
+
+ARG PACKAGE=./...
+ENV PACKAGE ${PACKAGE}
+
+CMD go test -v ${PACKAGE}

@@ -1,17 +1,17 @@
 FROM golang:1.16 as build
 
-WORKDIR /app
+WORKDIR /go/src
 
 COPY . .
 
 RUN make build
 
-FROM ubuntu:20.04
+FROM debian:buster-slim
 
 WORKDIR /app
 
-COPY --from=build /app/configs ./configs
-COPY --from=build /app/api .
+COPY --from=build /go/src/configs ./configs
+COPY --from=build /go/src/api .
 
 EXPOSE 8080
 
