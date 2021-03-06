@@ -1,1 +1,1 @@
-DROP TABLE credentials, users;
+DROP TABLE goat_invite_codes, credentials, users;
