@@ -2,5 +2,9 @@ port: ${PORT}
 auth:
   secret: ${AUTH_SECRET}
   duration: 5
+twilio:
+  sid: ACeed88d0dde63d5484687f280ba040cc7
+  token: ed89d6cc029a138451b13d2218068e14
+  verify: VAe3469d2d74040b66f8aaef1205e38e1e
 mysql:
   connectionString: ${MYSQL_CONN_STR}

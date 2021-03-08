@@ -6,8 +6,9 @@ type User struct {
 	ID            int       `db:"id"`
 	FirstName     string    `db:"first_name"`
 	LastName      string    `db:"last_name"`
-	Phone         *string   `db:"phone"`
+	Phone         string    `db:"phone"`
 	Email         string    `db:"email"`
+	Verified      bool      `db:"verified"`
 	Type          string    `db:"user_type"`
 	ProfileAvatar *string   `db:"profile_avatar"`
 	LastSeen      time.Time `db:"last_seen"`
