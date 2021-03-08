@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
@@ -23,7 +22,6 @@ func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
 	if user.Verified {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "already verified").Send(c)
 	}
-	fmt.Printf("v: %s\n", viper.GetString("twilio.verify"))
 	v, err := ctr.verify.Create(c.Context(), viper.GetString("twilio.verify"), url.Values{"To": []string{user.Phone}, "Channel": []string{"sms"}})
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
