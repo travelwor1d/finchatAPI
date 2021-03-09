@@ -10,13 +10,18 @@ type Twilio struct {
 	Token string
 }
 
+type Stripe struct {
+	Key string
+}
+
 type MySQL struct {
 	ConnectionString string
 }
 
 type AppConfig struct {
 	Port   string
-	Auth   `mapstructure:"auth"`
-	Twilio `mapstructure:"twilio"`
-	MySQL  `mapstructure:"mysql"`
+	Auth   Auth   `mapstructure:"auth"`
+	Twilio Twilio `mapstructure:"twilio"`
+	Stripe Stripe `mapstructure:"stripe"`
+	MySQL  MySQL  `mapstructure:"mysql"`
 }
