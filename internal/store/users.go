@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/finchatapp/finchat-api/internal/model"
@@ -65,4 +66,20 @@ func (s *Store) CreateUser(ctx context.Context, user *model.User, password strin
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) error {
+	const query = `
+	UPDATE users SET
+		stripe_id = ?
+	WHERE id = ?
+	`
+	_, err := s.db.ExecContext(ctx, query, stripeID, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }

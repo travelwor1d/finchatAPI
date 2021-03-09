@@ -1,5 +1,7 @@
 CREATE TABLE users (
   id int AUTO_INCREMENT PRIMARY KEY,
+  -- Stripe customer id
+  stripe_id varchar(50),
   first_name varchar(40) NOT NULL,
   last_name varchar(40) NOT NULL,
   phone varchar(40) NOT NULL,
