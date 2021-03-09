@@ -66,12 +66,12 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true})
 }
 
-type createSubscribtionPayload struct {
+type createSubscriptionPayload struct {
 	StripePriceID string `json:"stripePriceId" validate:"required"`
 }
 
-func (ctr *Ctr) CreateSubscribtion(c *fiber.Ctx) error {
-	var p createSubscribtionPayload
+func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
+	var p createSubscriptionPayload
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, fiber.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
