@@ -4,6 +4,7 @@ import "time"
 
 type User struct {
 	ID            int       `db:"id"`
+	StripeID      *string   `db:"stripe_id"`
 	FirstName     string    `db:"first_name"`
 	LastName      string    `db:"last_name"`
 	Phone         string    `db:"phone"`

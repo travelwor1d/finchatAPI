@@ -28,4 +28,7 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	})
 	apiv1.Get("/goats:invite", ctr.InviteGoat)
 	apiv1.Get("/goats/invite-codes/:inviteCode", ctr.VerifyInviteCode)
+	apiv1.Post("/goats/subscription-plans", ctr.CreateSubscriptionPlan)
+	apiv1.Post("/users/credit-card", ctr.AddCreditCard)
+	apiv1.Post("/users/subscriptions", ctr.CreateSubscription)
 }

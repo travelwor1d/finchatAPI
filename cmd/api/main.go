@@ -13,6 +13,7 @@ import (
 	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kevinburke/twilio-go"
+	"github.com/stripe/stripe-go/v72"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 	}
 
 	verify := twilio.NewClient(conf.Twilio.SID, conf.Twilio.Token, nil).Verify.Verifications
+
+	stripe.Key = conf.Stripe.Key
 
 	db, err := store.Connect(conf.MySQL)
 	if err != nil {

@@ -6,5 +6,7 @@ twilio:
   sid: ${TWILIO_SID}
   token: ${TWILIO_TOKEN}
   verify: ${TWILIO_VERIFY}
+stripe:
+  key: ${STRIPE_KEY}
 mysql:
   connectionString: ${MYSQL_CONN_STR}
