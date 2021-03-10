@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: core
+    restart: on-failure
+    volumes:
+      - ./migrations/000001_initial_schema.up.sql:/docker-entrypoint-initdb.d/initial_schema.sql
+
+  e2e_tests:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.test
+      args:
+        PACKAGE: ./tests
+    environment:
+      PORT: 8080
+      AUTH_SECRET: secret
+      MYSQL_CONN_STR: "root:@tcp(mysql:3306)/core?parseTime=true"
+    command:
+      [
+        "./scripts/wait-for-it.sh",
+        "--strict",
+        "--timeout=60",
+        "mysql:3306",
+        "--",
+        "go",
+        "test",
+        "-v",
+        "./tests",
+      ]
+    depends_on:
+      - mysql
+    volumes:
+      - .:/go/src

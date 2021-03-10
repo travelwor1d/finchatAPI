@@ -58,3 +58,7 @@ func (manager *JWTManager) Verify(accessToken string) (*JWTClaims, error) {
 	}
 	return claims, nil
 }
+
+type claims string
+
+var claimsKey = claims("key")

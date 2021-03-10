@@ -13,3 +13,7 @@ type Ctr struct {
 func New(s *store.Store, jw *token.JWTManager) *Ctr {
 	return &Ctr{s, jw}
 }
+
+func (ctr *Ctr) JWTManager() *token.JWTManager {
+	return ctr.jwtManager
+}
