@@ -13,6 +13,7 @@ import (
 	"github.com/finchatapp/finchat-api/pkg/config"
 	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
+	"github.com/kevinburke/twilio-go"
 )
 
 var a *fiber.App
@@ -23,6 +24,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("failed to load app configuration: %v", err)
 	}
 
+	verify := twilio.NewClient(conf.Twilio.SID, conf.Twilio.Token, nil).Verify.Verifications
+
 	db, err := store.Connect(conf.MySQL)
 	if err != nil {
 		log.Printf("failed to connect to mySQL db: %v", err)
@@ -30,7 +33,7 @@ func TestMain(m *testing.M) {
 
 	s := store.New(db)
 	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
-	ctr := controller.New(s, jwtM)
+	ctr := controller.New(s, jwtM, verify)
 
 	a = fiber.New()
 	app.Setup(a, ctr)

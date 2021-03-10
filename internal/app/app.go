@@ -10,6 +10,7 @@ import (
 )
 
 func Setup(app *fiber.App, ctr *controller.Ctr) {
+	p := middleware.Protected(ctr.JWTManager())
 	// Global middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
@@ -18,8 +19,10 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	authv1 := app.Group("/auth/v1")
 	authv1.Post("/login", ctr.Login)
 	authv1.Post("/register", ctr.Register)
+	authv1.Get("/verify", p, ctr.RequestVerification)
+	authv1.Post("/verify", p, ctr.Verify)
 
-	apiv1 := app.Group("/api/v1", middleware.Protected(ctr.JWTManager()))
+	apiv1 := app.Group("/api/v1", p)
 	apiv1.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("v1")
 	})

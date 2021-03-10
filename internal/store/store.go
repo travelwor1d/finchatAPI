@@ -83,6 +83,19 @@ func (s *Store) GetUserCredsByEmail(ctx context.Context, email string) (*model.C
 	return &creds, nil
 }
 
+func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
+	const query = `
+	UPDATE users SET
+		verified = true
+	WHERE id = ?
+	`
+	_, err := s.db.ExecContext(ctx, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}
+
 func (s *Store) SetPassword(ctx context.Context, id int, password string) error {
 	const query = `
 	INSERT INTO credentials(hash, user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE hash = ?

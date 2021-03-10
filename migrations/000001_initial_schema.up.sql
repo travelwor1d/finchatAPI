@@ -2,8 +2,9 @@ CREATE TABLE users (
   id int AUTO_INCREMENT PRIMARY KEY,
   first_name varchar(40) NOT NULL,
   last_name varchar(40) NOT NULL,
-  phone varchar(40),
+  phone varchar(40) NOT NULL,
   email varchar(50) NOT NULL UNIQUE,
+  verified boolean NOT NULL DEFAULT false,
   user_type varchar(4) NOT NULL CHECK (user_type IN ('GOAT', 'USER')),
   -- profile_avatar is a filepath.
   profile_avatar varchar(255),

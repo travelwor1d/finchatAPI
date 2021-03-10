@@ -42,11 +42,11 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 }
 
 type RegisterPayload struct {
-	FirstName string  `json:"firstName" validate:"required"`
-	LastName  string  `json:"lastName" validate:"required"`
-	Phone     *string `json:"phone" validate:"required"`
-	Email     string  `json:"email" validate:"required|email"`
-	Password  string  `json:"password" validate:"required|minLen:6"`
+	FirstName string `json:"firstName" validate:"required"`
+	LastName  string `json:"lastName" validate:"required"`
+	Phone     string `json:"phone" validate:"required"`
+	Email     string `json:"email" validate:"required|email"`
+	Password  string `json:"password" validate:"required|minLen:6"`
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
@@ -99,7 +99,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"token": token})
+	return c.JSON(fiber.Map{"token": token, "verified": user.Verified})
 }
 
 func matches(hash, password []byte) bool {

@@ -5,12 +5,18 @@ type Auth struct {
 	Duration int
 }
 
+type Twilio struct {
+	SID   string
+	Token string
+}
+
 type MySQL struct {
 	ConnectionString string
 }
 
 type AppConfig struct {
-	Port  string
-	Auth  `mapstructure:"auth"`
-	MySQL `mapstructure:"mysql"`
+	Port   string
+	Auth   `mapstructure:"auth"`
+	Twilio `mapstructure:"twilio"`
+	MySQL  `mapstructure:"mysql"`
 }
