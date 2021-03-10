@@ -9,6 +9,8 @@ import (
 	"github.com/gookit/validate"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v72/price"
+	"github.com/stripe/stripe-go/v72/product"
 	"github.com/stripe/stripe-go/v72/sub"
 )
 
@@ -68,6 +70,54 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 
 type createSubscriptionPayload struct {
 	StripePriceID string `json:"stripePriceId" validate:"required"`
+}
+
+type createSubscriptionPlanPayload struct {
+	PriceUSD int64 `json:"priceUsd" validate:"required|uint"`
+}
+
+// CreateSubscriptionPlan creates stripe product and price for it.
+func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
+	var p createSubscriptionPlanPayload
+	if err := c.BodyParser(&p); err != nil {
+		return httperr.New(codes.Omit, fiber.StatusBadRequest, "failed to parse body", err).Send(c)
+	}
+	v := validate.Struct(p)
+	if !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+	}
+
+	id, httpErr := userID(c)
+	if httpErr != nil {
+		return httpErr.Send(c)
+	}
+	user, err := ctr.store.GetUser(c.Context(), id)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+
+	prodParams := &stripe.ProductParams{
+		Name: stripe.String(user.FirstName + " " + user.LastName + " subscription"),
+	}
+	prod, err := product.New(prodParams)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+
+	priceParams := &stripe.PriceParams{
+		Currency: stripe.String(string(stripe.CurrencyUSD)),
+		Product:  &prod.ID,
+		Recurring: &stripe.PriceRecurringParams{
+			Interval: stripe.String("month"),
+		},
+		UnitAmount: stripe.Int64(p.PriceUSD),
+	}
+	_, err = price.New(priceParams)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+
+	return c.JSON(fiber.Map{"success": true})
 }
 
 func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
