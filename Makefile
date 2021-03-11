@@ -1,6 +1,9 @@
 build:
 	go build -o api cmd/api/*
 
+run-dev:
+	go run cmd/api/*
+
 clean-test-db:
 	docker-compose -f docker-compose.test.yml rm -v --stop --force mysql
 
