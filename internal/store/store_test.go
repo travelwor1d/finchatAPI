@@ -7,12 +7,12 @@ import (
 	"testing"
 
 	"github.com/finchatapp/finchat-api/internal/appconfig"
-	"github.com/finchatapp/finchat-api/pkg/config"
+	"github.com/gopher-lib/config"
 )
 
 func TestStore(t *testing.T) {
 	var conf appconfig.AppConfig
-	if err := config.LoadConfig(&conf, "../../configs/config.yaml", "../../.env"); err != nil {
+	if err := config.LoadFile(&conf, "../../configs/config.yaml", "../../.env"); err != nil {
 		log.Fatalf("failed to load app configuration: %v", err)
 	}
 

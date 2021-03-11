@@ -10,9 +10,9 @@ import (
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/store"
-	"github.com/finchatapp/finchat-api/pkg/config"
 	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gopher-lib/config"
 	"github.com/kevinburke/twilio-go"
 )
 
@@ -20,7 +20,7 @@ var a *fiber.App
 
 func TestMain(m *testing.M) {
 	var conf appconfig.AppConfig
-	if err := config.LoadConfig(&conf, "../configs/config.yaml"); err != nil {
+	if err := config.LoadFile(&conf, "../configs/config.yaml"); err != nil {
 		log.Fatalf("failed to load app configuration: %v", err)
 	}
 
