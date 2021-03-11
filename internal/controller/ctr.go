@@ -2,17 +2,17 @@ package controller
 
 import (
 	"github.com/finchatapp/finchat-api/internal/store"
+	"github.com/finchatapp/finchat-api/internal/verify"
 	"github.com/finchatapp/finchat-api/pkg/token"
-	"github.com/kevinburke/twilio-go"
 )
 
 type Ctr struct {
 	store      *store.Store
 	jwtManager *token.JWTManager
-	verify     *twilio.VerifyPhoneNumberService
+	verify     verify.Verifier
 }
 
-func New(s *store.Store, jw *token.JWTManager, v *twilio.VerifyPhoneNumberService) *Ctr {
+func New(s *store.Store, jw *token.JWTManager, v verify.Verifier) *Ctr {
 	return &Ctr{s, jw, v}
 }
 

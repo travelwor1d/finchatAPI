@@ -27,7 +27,7 @@ func TestLogin(t *testing.T) {
 
 func TestRegister(t *testing.T) {
 	t.Run("register new user", func(t *testing.T) {
-		req := httptest.NewRequest("POST", "/auth/v1/login", strings.NewReader(`
+		req := httptest.NewRequest("POST", "/auth/v1/register", strings.NewReader(`
 	{
     "firstName": "Martin",
     "lastName": "Lukasik",
