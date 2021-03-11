@@ -2,12 +2,10 @@ package controller
 
 import (
 	"net/http"
-	"net/url"
 
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
-	"github.com/spf13/viper"
 )
 
 func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
@@ -22,11 +20,11 @@ func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
 	if user.Verified {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "already verified").Send(c)
 	}
-	v, err := ctr.verify.Create(c.Context(), viper.GetString("twilio.verify"), url.Values{"To": []string{user.Phone}, "Channel": []string{"sms"}})
+	status, err := ctr.verify.Request(c.Context(), user.Phone)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"verificationStatus": v.Status})
+	return c.JSON(fiber.Map{"verificationStatus": status})
 }
 
 type VerifyPayload struct {
@@ -46,18 +44,18 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	v, err := ctr.verify.Check(c.Context(), viper.GetString("twilio.verify"), url.Values{"To": []string{user.Phone}, "Code": []string{p.Code}})
+	status, err := ctr.verify.Verify(c.Context(), user.Phone, p.Code)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	if v.Status == "pending" {
+	if status == "pending" {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid verification code").Send(c)
 	}
-	if v.Status == "approved" {
+	if status == "approved" {
 		if err = ctr.store.SetVerifiedUser(c.Context(), user.ID); err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
-		return c.JSON(fiber.Map{"verificationStatus": v.Status})
+		return c.JSON(fiber.Map{"verificationStatus": status})
 	}
-	return c.JSON(fiber.Map{"verificationStatus": v.Status})
+	return c.JSON(fiber.Map{"verificationStatus": status})
 }

@@ -6,8 +6,9 @@ type Auth struct {
 }
 
 type Twilio struct {
-	SID   string
-	Token string
+	SID    string
+	Token  string
+	Verify string
 }
 
 type Stripe struct {

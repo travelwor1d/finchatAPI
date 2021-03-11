@@ -10,7 +10,7 @@ import (
 )
 
 func TestPosts(t *testing.T) {
-	req := httptest.NewRequest("POST", "/auth/v1/login", strings.NewReader(`
+	req := httptest.NewRequest("POST", "/api/v1/posts", strings.NewReader(`
 	{
 		"title": "First Post",
 		"content": "..."
@@ -24,7 +24,7 @@ func TestPosts(t *testing.T) {
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != 200 {
-		log.Fatalf("unsuccessful login: %s", body)
+		log.Fatalf("unsuccessful post creation: %s", body)
 	}
 	fmt.Println(string(body))
 }
