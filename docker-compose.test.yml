@@ -10,7 +10,6 @@ services:
     restart: on-failure
     volumes:
       - ./migrations/000001_initial_schema.up.sql:/docker-entrypoint-initdb.d/initial_schema.sql
-      - mysqldata:/var/lib/mysql
 
   e2e_tests:
     build:
@@ -38,6 +37,3 @@ services:
       - mysql
     volumes:
       - .:/go/src
-
-volumes:
-  mysqldata:
