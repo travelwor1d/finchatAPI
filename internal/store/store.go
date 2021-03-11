@@ -15,6 +15,10 @@ var (
 	ErrAlreadyExists = errors.New("already exists")
 )
 
+type Pagination struct {
+	Limit, Offset int
+}
+
 type DBTX interface {
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	GetContext(context.Context, interface{}, string, ...interface{}) error
