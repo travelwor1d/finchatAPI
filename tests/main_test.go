@@ -1,8 +1,12 @@
 package tests
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"log"
+	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,6 +21,8 @@ import (
 )
 
 var a *fiber.App
+
+var authToken string
 
 func TestMain(m *testing.M) {
 	var conf appconfig.AppConfig
@@ -37,6 +43,27 @@ func TestMain(m *testing.M) {
 
 	a = fiber.New()
 	app.Setup(a, ctr)
+
+	req := httptest.NewRequest("POST", "/auth/v1/login", strings.NewReader(`
+	{
+		"email": "example@gmail.com",
+		"password": "admin123"
+	}
+	`))
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := a.Test(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if resp.StatusCode != 200 {
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Fatalf("unsuccessful login: %s", body)
+	}
+	var body struct{ JWT string }
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		log.Fatal(err)
+	}
+	authToken = body.JWT
 
 	os.Exit(m.Run())
 }

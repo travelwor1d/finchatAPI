@@ -9,9 +9,8 @@ require (
 	github.com/gofiber/fiber/v2 v2.5.0
 	github.com/golang/protobuf v1.4.3 // indirect
 	github.com/gookit/validate v1.2.8
-	github.com/gopher-lib/config v0.1.1 // indirect
+	github.com/gopher-lib/config v0.1.1
 	github.com/jmoiron/sqlx v1.3.1
-	github.com/joho/godotenv v1.3.0
 	github.com/kevinburke/go-types v0.0.0-20201208005256-aee49f568a20 // indirect
 	github.com/kevinburke/go.uuid v1.2.0 // indirect
 	github.com/kevinburke/rest v0.0.0-20210222204520-f7a2e216372f // indirect
