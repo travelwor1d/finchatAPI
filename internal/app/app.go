@@ -31,4 +31,11 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Post("/goats/subscription-plans", ctr.CreateSubscriptionPlan)
 	apiv1.Post("/users/credit-card", ctr.AddCreditCard)
 	apiv1.Post("/users/subscriptions", ctr.CreateSubscription)
+
+	apiv1.Get("/posts", ctr.ListPosts)
+	apiv1.Get("/posts/:id", ctr.GetPost)
+	apiv1.Post("/posts", ctr.CreatePost)
+	apiv1.Get("/comments", ctr.ListComments)
+	apiv1.Get("/comments/:id", ctr.GetComment)
+	apiv1.Post("/comments", ctr.CreateComment)
 }
