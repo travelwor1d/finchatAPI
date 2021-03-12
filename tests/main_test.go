@@ -3,7 +3,8 @@ package tests
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"log"
 	"net/http/httptest"
 	"os"
@@ -24,7 +25,7 @@ import (
 
 var a *fiber.App
 
-var authToken string
+var userAuthToken, goatAuthToken string
 
 func TestMain(m *testing.M) {
 	var conf appconfig.AppConfig
@@ -49,42 +50,63 @@ func TestMain(m *testing.M) {
 	a = fiber.New()
 	app.Setup(a, ctr)
 
-	req := httptest.NewRequest("POST", "/auth/v1/login", strings.NewReader(`
-	{
-		"email": "example@gmail.com",
-		"password": "admin123"
-	}
-	`))
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := a.Test(req)
+	userAuthToken, err = login("user@gmail.com", "admin123")
 	if err != nil {
 		log.Fatal(err)
 	}
-	if resp.StatusCode != 200 {
-		body, _ := ioutil.ReadAll(resp.Body)
-		log.Fatalf("unsuccessful login: %s", body)
-	}
-	var body struct {
-		Token string `json:"token"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+	goatAuthToken, err = login("goat@gmail.com", "admin123")
+	if err != nil {
 		log.Fatal(err)
 	}
-	authToken = body.Token
 
 	os.Exit(m.Run())
 }
 
 func seedDB(s *store.Store) error {
-	_, err := s.CreateUser(context.Background(), &model.User{
+	user, err := s.CreateUser(context.Background(), &model.User{
 		FirstName: "Example",
 		LastName:  "User",
 		Phone:     "+489603962412",
-		Email:     "example@gmail.com",
+		Email:     "user@gmail.com",
 		Type:      "USER",
 	}, "admin123")
 	if err != nil {
 		return err
 	}
+	code, err := s.CreateGoatInviteCode(context.Background(), user.ID)
+	if err != nil {
+		return err
+	}
+	_, err = s.CreateUser(context.Background(), &model.User{
+		FirstName: "Example",
+		LastName:  "Goat",
+		Phone:     "+489603962412",
+		Email:     "goat@gmail.com",
+		Type:      "GOAT",
+	}, "admin123", code)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func login(email, password string) (string, error) {
+	reqBody := fmt.Sprintf(`{"email": "%s", "password": "%s"}`, email, password)
+	req := httptest.NewRequest("POST", "/auth/v1/login", strings.NewReader(reqBody))
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := a.Test(req)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("unsuccessful login: %s", body)
+	}
+	var body struct {
+		Token string `json:"token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		return "", err
+	}
+	return body.Token, err
 }
