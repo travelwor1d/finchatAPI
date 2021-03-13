@@ -13,10 +13,7 @@ func (s *Store) ListPosts(ctx context.Context, p *Pagination) ([]*model.Post, er
 	SELECT * FROM posts LIMIT ? OFFSET ?
 	`
 	var posts []*model.Post
-	err := s.db.GetContext(ctx, &posts, query, p.Limit, p.Offset)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
+	err := s.db.SelectContext(ctx, &posts, query, p.Limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +40,6 @@ func (s *Store) CreatePost(ctx context.Context, post *model.Post) (*model.Post, 
 	INSERT INTO posts(title, content, posted_by, published_at) VALUES (?, ?, ?, ?)
 	`
 	result, err := s.db.ExecContext(ctx, query, post.Title, post.Content, post.PostedBy, post.PublishedAt)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +55,7 @@ func (s *Store) ListComments(ctx context.Context, p *Pagination) ([]*model.Comme
 	SELECT * FROM comments LIMIT ? OFFSET ?
 	`
 	var comments []*model.Comment
-	err := s.db.GetContext(ctx, &comments, query, p.Limit, p.Offset)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
+	err := s.db.SelectContext(ctx, &comments, query, p.Limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -91,9 +82,6 @@ func (s *Store) CreateComment(ctx context.Context, comment *model.Comment) (*mod
 	INSERT INTO comments(post_id, content, posted_by, published_at) VALUES (?, ?, ?, ?)
 	`
 	result, err := s.db.ExecContext(ctx, query, comment.PostID, comment.Content, comment.PostedBy, comment.PublishedAt)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
 	if err != nil {
 		return nil, err
 	}

@@ -42,36 +42,6 @@ func (s *Store) WithTx(tx *sqlx.Tx) *Store {
 	return &Store{tx, s.conn}
 }
 
-func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
-	const query = `
-	SELECT * FROM users WHERE id = ?
-	`
-	var user model.User
-	err := s.db.GetContext(ctx, &user, query, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
-	const query = `
-	SELECT * FROM users WHERE email = ?
-	`
-	var user model.User
-	err := s.db.GetContext(ctx, &user, query, email)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
 func (s *Store) GetUserCredsByEmail(ctx context.Context, email string) (*model.Creds, error) {
 	const query = `
 	SELECT c.* FROM credentials c JOIN users u ON c.user_id = u.id WHERE email = ?

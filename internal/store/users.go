@@ -4,10 +4,59 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/go-sql-driver/mysql"
 )
+
+func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
+	const query = `
+	SELECT * FROM users WHERE id = ?
+	`
+	var user model.User
+	err := s.db.GetContext(ctx, &user, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
+	const query = `
+	SELECT * FROM users WHERE email = ?
+	`
+	var user model.User
+	err := s.db.GetContext(ctx, &user, query, email)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, p *Pagination) ([]*model.User, error) {
+	query := fmt.Sprintf(`
+	SELECT * FROM users
+		WHERE (
+			lower(first_name) LIKE '%s' OR
+			lower(last_name) LIKE '%s'
+		) AND user_type IN (%s)
+	LIMIT ? OFFSET ?
+	`, "%"+searchInput+"%", "%"+searchInput+"%", userTypes)
+	var users []*model.User
+	err := s.db.SelectContext(ctx, &users, query, p.Limit, p.Offset)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(users, err)
+	return users, nil
+}
 
 func (s *Store) CreateUser(ctx context.Context, user *model.User, password string, inviteCode ...string) (*model.User, error) {
 	const query = `

@@ -23,7 +23,7 @@ func (ctr *Ctr) ListPosts(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
 	}
-	posts, err := ctr.store.ListPosts(c.Context(), &store.Pagination{Limit: size, Offset: size * page})
+	posts, err := ctr.store.ListPosts(c.Context(), &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -91,7 +91,7 @@ func (ctr *Ctr) ListComments(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
 	}
-	comments, err := ctr.store.ListComments(c.Context(), &store.Pagination{Limit: size, Offset: size * page})
+	comments, err := ctr.store.ListComments(c.Context(), &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
