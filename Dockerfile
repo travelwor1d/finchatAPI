@@ -1,18 +1,20 @@
-FROM golang:1.16 as build
-
-WORKDIR /go/src
-
-COPY . .
-
-RUN make build
-
-FROM debian:buster-slim
+FROM golang:1.16-buster as builder
 
 WORKDIR /app
 
-COPY --from=build /go/src/configs ./configs
-COPY --from=build /go/src/api .
+COPY go.* ./
+RUN go mod download
 
-EXPOSE 8080
+COPY . ./
 
-CMD [ "./api" ]
+RUN go build -v -o api cmd/api/*
+
+FROM debian:buster-slim
+RUN set -x && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+  ca-certificates && \
+  rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/configs /app/configs
+COPY --from=builder /app/api /app/api
+
+CMD ["/app/api"]
