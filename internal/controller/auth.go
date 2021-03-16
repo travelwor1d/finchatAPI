@@ -14,13 +14,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginPayload struct {
+type loginPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (ctr *Ctr) Login(c *fiber.Ctx) error {
-	var p LoginPayload
+	var p loginPayload
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
@@ -41,7 +41,7 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": token})
 }
 
-type RegisterPayload struct {
+type registerPayload struct {
 	FirstName string `json:"firstName" validate:"required"`
 	LastName  string `json:"lastName" validate:"required"`
 	Phone     string `json:"phone" validate:"required"`
@@ -50,7 +50,7 @@ type RegisterPayload struct {
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
-	var p RegisterPayload
+	var p registerPayload
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}

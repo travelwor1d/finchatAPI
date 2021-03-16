@@ -10,9 +10,14 @@ import (
 	"github.com/go-sql-driver/mysql"
 )
 
+var (
+	ErrUserDeleted    = errors.New("cannot perform action: user was deleted")
+	ErrUserNotDeleted = errors.New("cannot undelete user: user has not been deleted")
+)
+
 func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
 	const query = `
-	SELECT * FROM users WHERE id = ?
+	SELECT * FROM users WHERE id = ? AND deleted_at IS NULL
 	`
 	var user model.User
 	err := s.db.GetContext(ctx, &user, query, id)
@@ -27,7 +32,7 @@ func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
 
 func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	const query = `
-	SELECT * FROM users WHERE email = ?
+	SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
 	`
 	var user model.User
 	err := s.db.GetContext(ctx, &user, query, email)
@@ -46,7 +51,7 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 		WHERE (
 			lower(first_name) LIKE '%s' OR
 			lower(last_name) LIKE '%s'
-		) AND user_type IN (%s)
+		) AND user_type IN (%s) AND deleted_at IS NULL
 	LIMIT ? OFFSET ?
 	`, "%"+searchInput+"%", "%"+searchInput+"%", userTypes)
 	var users []*model.User
@@ -117,18 +122,95 @@ func (s *Store) CreateUser(ctx context.Context, user *model.User, password strin
 	return user, nil
 }
 
+func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName, profileAvatar *string) (*model.User, error) {
+	isDeleted, err := s.isUserDeleted(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if isDeleted {
+		return nil, ErrUserDeleted
+	}
+	const query = `
+	UPDATE users SET
+		first_name = coalesce(?, first_name),
+		last_name = coalesce(?, last_name),
+		profile_avatar = coalesce(?, profile_avatar)
+	WHERE id = ?
+	`
+	_, err = s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return s.GetUser(ctx, userID)
+}
+
+func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
+	isDeleted, err := s.isUserDeleted(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if isDeleted {
+		// Returns error that user was already"soft deleted".
+		return ErrUserDeleted
+	}
+	const query = `
+	UPDATE users SET
+		deleted_at = now()
+	WHERE id = ?
+	`
+	_, err = s.db.ExecContext(ctx, query, userID)
+	return err
+}
+
+func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
+	isDeleted, err := s.isUserDeleted(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if !isDeleted {
+		// Returns error that user has not been "soft deleted", yet.
+		return ErrUserNotDeleted
+	}
+	const query = `
+	UPDATE users SET
+		deleted_at = NULL
+	WHERE id = ?
+	`
+	_, err = s.db.ExecContext(ctx, query, userID)
+	return err
+}
+
 func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) error {
+	isDeleted, err := s.isUserDeleted(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if isDeleted {
+		return ErrUserDeleted
+	}
 	const query = `
 	UPDATE users SET
 		stripe_id = ?
 	WHERE id = ?
 	`
-	_, err := s.db.ExecContext(ctx, query, stripeID, userID)
+	_, err = s.db.ExecContext(ctx, query, stripeID, userID)
+	return err
+}
+
+func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
+	const query = `
+	SELECT deleted_at IS NOT NULL FROM users WHERE id = ?
+	`
+	var isDeleted bool
+	err := s.db.GetContext(ctx, isDeleted, query, userID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return ErrNotFound
+		return false, ErrNotFound
 	}
 	if err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	return isDeleted, nil
 }

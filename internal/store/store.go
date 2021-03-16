@@ -44,7 +44,7 @@ func (s *Store) WithTx(tx *sqlx.Tx) *Store {
 
 func (s *Store) GetUserCredsByEmail(ctx context.Context, email string) (*model.Creds, error) {
 	const query = `
-	SELECT c.* FROM credentials c JOIN users u ON c.user_id = u.id WHERE email = ?
+	SELECT c.* FROM credentials c JOIN users u ON c.user_id = u.id WHERE email = ? AND deleted_at IS NULL
 	`
 	var creds model.Creds
 	err := s.db.GetContext(ctx, &creds, query, email)
@@ -61,7 +61,7 @@ func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
 	const query = `
 	UPDATE users SET
 		verified = true
-	WHERE id = ?
+	WHERE id = ? AND deleted_at IS NULL
 	`
 	_, err := s.db.ExecContext(ctx, query, id)
 	if errors.Is(err, sql.ErrNoRows) {

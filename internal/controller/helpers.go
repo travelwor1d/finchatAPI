@@ -13,6 +13,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+var errInternal = httperr.New(codes.Omit, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+
 func userID(c *fiber.Ctx) (int, *httperr.HTTPErr) {
 	claims, ok := c.Locals("claims").(*token.JWTClaims)
 	if !ok || claims == nil {

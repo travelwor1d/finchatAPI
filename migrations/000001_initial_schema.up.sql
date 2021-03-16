@@ -12,7 +12,8 @@ CREATE TABLE users (
   profile_avatar varchar(255),
   last_seen timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now(),
-  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
+  deleted_at timestamp
 );
 
 CREATE TABLE credentials (
