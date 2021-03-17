@@ -17,6 +17,7 @@ import (
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
+	"github.com/finchatapp/finchat-api/internal/upload"
 	"github.com/finchatapp/finchat-api/internal/verify"
 	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
@@ -40,12 +41,14 @@ func TestMain(m *testing.M) {
 		log.Printf("failed to connect to mySQL db: %v", err)
 	}
 
+	u := upload.Mock{}
+
 	s := store.New(db)
 	if err = seedDB(s); err != nil {
 		log.Fatal(err)
 	}
 	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
-	ctr := controller.New(s, jwtM, verifySvc)
+	ctr := controller.New(s, jwtM, verifySvc, u)
 
 	a = fiber.New()
 	app.Setup(a, ctr)

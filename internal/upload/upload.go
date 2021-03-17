@@ -10,6 +10,11 @@ import (
 	"github.com/finchatapp/finchat-api/pkg/unique"
 )
 
+type Uploader interface {
+	ProfiveAvatarFileName(user *model.User, ext string) string
+	UploadProfileAvatar(ctx context.Context, filename string, r io.Reader) error
+}
+
 type Client struct {
 	bucket *storage.BucketHandle
 }

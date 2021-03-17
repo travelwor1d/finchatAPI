@@ -11,10 +11,10 @@ type Ctr struct {
 	store      *store.Store
 	jwtManager *token.JWTManager
 	verify     verify.Verifier
-	upload     *upload.Client
+	upload     upload.Uploader
 }
 
-func New(s *store.Store, jw *token.JWTManager, v verify.Verifier, u *upload.Client) *Ctr {
+func New(s *store.Store, jw *token.JWTManager, v verify.Verifier, u upload.Uploader) *Ctr {
 	return &Ctr{s, jw, v, u}
 }
 
