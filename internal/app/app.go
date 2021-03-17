@@ -33,6 +33,7 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Post("/users/subscriptions", ctr.CreateSubscription)
 
 	apiv1.Get("/users", ctr.ListUsers)
+	apiv1.Post("/users/me/profile-avatar:upload", ctr.UploadProvileAvatar)
 	apiv1.Get("/users/:id", ctr.GetUser)
 	apiv1.Patch("/users/:id", ctr.UpdateUser)
 	apiv1.Delete("/users/:id", ctr.SoftDeleteUser)

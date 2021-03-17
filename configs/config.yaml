@@ -8,5 +8,7 @@ twilio:
   verify: ${TWILIO_VERIFY}
 stripe:
   key: ${STRIPE_KEY}
+storage:
+  bucketName: finchat-storage
 mysql:
   connectionString: ${MYSQL_CONN_STR}

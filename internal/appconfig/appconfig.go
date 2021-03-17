@@ -19,10 +19,15 @@ type MySQL struct {
 	ConnectionString string
 }
 
+type Storage struct {
+	BucketName string
+}
+
 type AppConfig struct {
-	Port   string
-	Auth   Auth   `mapstructure:"auth"`
-	Twilio Twilio `mapstructure:"twilio"`
-	Stripe Stripe `mapstructure:"stripe"`
-	MySQL  MySQL  `mapstructure:"mysql"`
+	Port    string
+	Auth    Auth    `mapstructure:"auth"`
+	Twilio  Twilio  `mapstructure:"twilio"`
+	Stripe  Stripe  `mapstructure:"stripe"`
+	MySQL   MySQL   `mapstructure:"mysql"`
+	Storage Storage `mapstructure:"storage"`
 }

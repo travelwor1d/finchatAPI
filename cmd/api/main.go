@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/store"
+	"github.com/finchatapp/finchat-api/internal/upload"
 	"github.com/finchatapp/finchat-api/internal/verify"
 	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
@@ -33,9 +36,16 @@ func main() {
 		log.Fatalf("failed to connect to mySQL db: %v", err)
 	}
 
+	storageClint, err := storage.NewClient(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	bkt := storageClint.Bucket(conf.Storage.BucketName)
+	u := upload.New(bkt)
+
 	s := store.New(db)
 	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
-	ctr := controller.New(s, jwtM, verifySvc)
+	ctr := controller.New(s, jwtM, verifySvc, u)
 
 	a := fiber.New()
 
