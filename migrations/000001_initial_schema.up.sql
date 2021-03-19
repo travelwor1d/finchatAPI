@@ -42,6 +42,7 @@ CREATE TABLE posts (
   content text NOT NULL,
   -- Comma separeted list of image urls.
   image_urls varchar(6553) NOT NULL DEFAULT '',
+  tickers varchar(6553) NOT NULL DEFAULT '',
   posted_by int NOT NULL REFERENCES users (id),
   published_at timestamp,
   created_at timestamp NOT NULL DEFAULT now(),

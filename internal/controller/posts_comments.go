@@ -49,6 +49,7 @@ type createPostPayload struct {
 	Title       string     `json:"title" validate:"required"`
 	Content     string     `json:"content" validate:"required"`
 	ImageURLs   []string   `json:"imageUrls" validate:"strings"`
+	Tickers     []string   `json:"tickers" validate:"strings"`
 	PublishedAt *time.Time `json:"publishedAt" validate:"-"`
 }
 
@@ -75,6 +76,7 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 		Title:       p.Title,
 		Content:     p.Content,
 		ImageURLs:   p.ImageURLs,
+		Tickers:     p.Tickers,
 		PostedBy:    user.ID,
 		PublishedAt: p.PublishedAt,
 	})
