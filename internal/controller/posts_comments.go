@@ -48,6 +48,7 @@ func (ctr *Ctr) GetPost(c *fiber.Ctx) error {
 type createPostPayload struct {
 	Title       string     `json:"title" validate:"required"`
 	Content     string     `json:"content" validate:"required"`
+	ImageURLs   []string   `json:"imageUrls" validate:"strings"`
 	PublishedAt *time.Time `json:"publishedAt" validate:"-"`
 }
 
@@ -73,6 +74,7 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 	post, err := ctr.store.CreatePost(c.Context(), &model.Post{
 		Title:       p.Title,
 		Content:     p.Content,
+		ImageURLs:   p.ImageURLs,
 		PostedBy:    user.ID,
 		PublishedAt: p.PublishedAt,
 	})

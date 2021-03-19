@@ -40,6 +40,8 @@ CREATE TABLE posts (
   id int AUTO_INCREMENT PRIMARY KEY,
   title varchar(255) NOT NULL,
   content text NOT NULL,
+  -- Comma separeted list of image urls.
+  image_urls varchar(6553) NOT NULL DEFAULT '',
   posted_by int NOT NULL REFERENCES users (id),
   published_at timestamp,
   created_at timestamp NOT NULL DEFAULT now(),

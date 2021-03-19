@@ -37,9 +37,9 @@ func (s *Store) GetPost(ctx context.Context, id int) (*model.Post, error) {
 
 func (s *Store) CreatePost(ctx context.Context, post *model.Post) (*model.Post, error) {
 	const query = `
-	INSERT INTO posts(title, content, posted_by, published_at) VALUES (?, ?, ?, ?)
+	INSERT INTO posts(title, content, image_urls, posted_by, published_at) VALUES (?, ?, ?, ?, ?)
 	`
-	result, err := s.db.ExecContext(ctx, query, post.Title, post.Content, post.PostedBy, post.PublishedAt)
+	result, err := s.db.ExecContext(ctx, query, post.Title, post.Content, post.ImageURLs, post.PostedBy, post.PublishedAt)
 	if err != nil {
 		return nil, err
 	}

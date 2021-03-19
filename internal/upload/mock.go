@@ -16,6 +16,6 @@ func (m Mock) ProfiveAvatarFileName(user *model.User, ext string) string {
 	return fmt.Sprintf("profile-avatar-%s-%s-%s%s", user.FirstName, user.LastName, unique.New(12), ext)
 }
 
-func (m Mock) UploadProfileAvatar(ctx context.Context, filename string, r io.Reader) error {
+func (m Mock) Upload(ctx context.Context, filename string, r io.Reader) error {
 	return nil
 }

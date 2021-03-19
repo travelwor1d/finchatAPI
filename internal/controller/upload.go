@@ -27,7 +27,7 @@ func (ctr *Ctr) UploadProvileAvatar(c *fiber.Ctx) error {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	filename := ctr.upload.ProfiveAvatarFileName(user, filepath.Ext(file.Filename))
-	err = ctr.upload.UploadProfileAvatar(c.Context(), filename, f)
+	err = ctr.upload.Upload(c.Context(), filename, f)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}

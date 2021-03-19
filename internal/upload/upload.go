@@ -12,7 +12,7 @@ import (
 
 type Uploader interface {
 	ProfiveAvatarFileName(user *model.User, ext string) string
-	UploadProfileAvatar(ctx context.Context, filename string, r io.Reader) error
+	Upload(ctx context.Context, filename string, r io.Reader) error
 }
 
 type Client struct {
@@ -27,7 +27,11 @@ func (c *Client) ProfiveAvatarFileName(user *model.User, ext string) string {
 	return fmt.Sprintf("profile-avatar-%s-%s-%s%s", user.FirstName, user.LastName, unique.New(12), ext)
 }
 
-func (c *Client) UploadProfileAvatar(ctx context.Context, filename string, r io.Reader) error {
+func (c *Client) PostImageFileName(user *model.User, ext string) string {
+	return fmt.Sprintf("post-image-%s-%s-%s%s", user.FirstName, user.LastName, unique.New(12), ext)
+}
+
+func (c *Client) Upload(ctx context.Context, filename string, r io.Reader) error {
 	wc := c.bucket.Object(filename).NewWriter(ctx)
 	if _, err := io.Copy(wc, r); err != nil {
 		return fmt.Errorf("io.Copy: %v", err)
