@@ -10,6 +10,7 @@ import (
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
+	"github.com/finchatapp/finchat-api/internal/messaging"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/internal/upload"
 	"github.com/finchatapp/finchat-api/internal/verify"
@@ -36,6 +37,8 @@ func main() {
 		log.Fatalf("failed to connect to mySQL db: %v", err)
 	}
 
+	msg := messaging.New(conf.Pubnub)
+
 	storageClint, err := storage.NewClient(context.Background())
 	if err != nil {
 		log.Fatal(err)
@@ -45,7 +48,7 @@ func main() {
 
 	s := store.New(db)
 	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
-	ctr := controller.New(s, jwtM, verifySvc, u)
+	ctr := controller.New(s, jwtM, verifySvc, u, msg)
 
 	a := fiber.New()
 

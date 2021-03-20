@@ -15,6 +15,7 @@ import (
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
+	"github.com/finchatapp/finchat-api/internal/messaging"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/internal/upload"
@@ -42,13 +43,14 @@ func TestMain(m *testing.M) {
 	}
 
 	u := upload.Mock{}
+	msg := messaging.Mock{}
 
 	s := store.New(db)
 	if err = seedDB(s); err != nil {
 		log.Fatal(err)
 	}
 	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
-	ctr := controller.New(s, jwtM, verifySvc, u)
+	ctr := controller.New(s, jwtM, verifySvc, u, msg)
 
 	a = fiber.New()
 	app.Setup(a, ctr)

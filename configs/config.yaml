@@ -8,6 +8,11 @@ twilio:
   verify: ${TWILIO_VERIFY}
 stripe:
   key: ${STRIPE_KEY}
+pubnub:
+  pubKey: ${PUB_KEY}
+  subKey: ${SUB_KEY}
+  secKey: ${SEC_KEY}
+  serverUUID: ${SERVER_UUID}
 storage:
   bucketName: finchat-storage
 mysql:
