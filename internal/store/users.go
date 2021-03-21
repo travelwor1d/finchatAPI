@@ -59,7 +59,6 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(users, err)
 	return users, nil
 }
 

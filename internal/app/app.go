@@ -45,4 +45,9 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Get("/comments", ctr.ListComments)
 	apiv1.Get("/comments/:id", ctr.GetComment)
 	apiv1.Post("/comments", ctr.CreateComment)
+
+	apiv1.Get("/threads", ctr.ListThreads)
+	apiv1.Get("/threads/:id", ctr.GetThread)
+	apiv1.Post("/threads", ctr.CreateThread)
+	apiv1.Post("/threads/:id/messages", ctr.SendMessage)
 }

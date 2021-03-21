@@ -37,17 +37,16 @@ func main() {
 		log.Fatalf("failed to connect to mySQL db: %v", err)
 	}
 
-	msg := messaging.New(conf.Pubnub)
-
 	storageClint, err := storage.NewClient(context.Background())
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to create storage service: %v", err)
 	}
 	bkt := storageClint.Bucket(conf.Storage.BucketName)
 	u := upload.New(bkt)
 
 	s := store.New(db)
 	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
+	msg := messaging.New(conf.Pubnub, s)
 	ctr := controller.New(s, jwtM, verifySvc, u, msg)
 
 	a := fiber.New()

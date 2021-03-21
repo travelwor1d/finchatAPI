@@ -58,3 +58,29 @@ CREATE TABLE comments (
   created_at timestamp NOT NULL DEFAULT now(),
   updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
 );
+
+CREATE TABLE threads (
+  id int AUTO_INCREMENT PRIMARY KEY,
+  title varchar(255) DEFAULT '',
+  thread_type varchar(6) NOT NULL CHECK (thread_type in ('SINGLE', 'GROUP')),
+  created_at timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
+);
+
+CREATE TABLE thread_participants (
+  id int AUTO_INCREMENT PRIMARY KEY,
+  user_id int NOT NULL REFERENCES users (id),
+  thread_id int NOT NULL REFERENCES threads (id),
+  created_at timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
+);
+
+CREATE TABLE thread_messages (
+  id int AUTO_INCREMENT PRIMARY KEY,
+  thread_id int NOT NULL REFERENCES threads (id),
+  sender_id int NOT NULL REFERENCES users (id),
+  message_type varchar(4) NOT NULL DEFAULT 'TEXT' CHECK (message_type in ('TEXT')),
+  -- pubnub timestamp.
+  message text NOT NULL,
+  timestamp bigint NOT NULL
+);
