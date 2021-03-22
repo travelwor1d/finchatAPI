@@ -8,9 +8,10 @@ import (
 )
 
 var (
-	ErrInvalidToken                 = errors.New("invalid token")
-	ErrInvalidClaims                = errors.New("invalid claims")
-	ErrUnexpectedTokenSigningMethod = errors.New("unexpected token signing method")
+	ErrExpired                 = errors.New("expired token")
+	ErrInvalid                 = errors.New("invalid token")
+	ErrInvalidClaims           = errors.New("invalid claims")
+	ErrUnexpectedSigningMethod = errors.New("unexpected token signing method")
 )
 
 type JWTClaims struct {
@@ -44,13 +45,21 @@ func (manager *JWTManager) Verify(accessToken string) (*JWTClaims, error) {
 		func(token *jwt.Token) (interface{}, error) {
 			_, ok := token.Method.(*jwt.SigningMethodHMAC)
 			if !ok {
-				return nil, ErrUnexpectedTokenSigningMethod
+				return nil, ErrUnexpectedSigningMethod
 			}
 			return []byte(manager.secret), nil
 		},
 	)
 	if err != nil {
-		return nil, ErrInvalidToken
+		v, ok := err.(*jwt.ValidationError)
+		if ok && v.Errors == jwt.ValidationErrorExpired {
+			token, _, err := new(jwt.Parser).ParseUnverified(accessToken, &JWTClaims{})
+			if err != nil {
+				return nil, ErrInvalid
+			}
+			return token.Claims.(*JWTClaims), ErrExpired
+		}
+		return nil, ErrInvalid
 	}
 	claims, ok := token.Claims.(*JWTClaims)
 	if !ok {
@@ -58,7 +67,3 @@ func (manager *JWTManager) Verify(accessToken string) (*JWTClaims, error) {
 	}
 	return claims, nil
 }
-
-type claims string
-
-var claimsKey = claims("key")

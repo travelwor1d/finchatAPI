@@ -10,7 +10,7 @@ import (
 )
 
 func Setup(app *fiber.App, ctr *controller.Ctr) {
-	p := middleware.Protected(ctr.JWTManager())
+	p := middleware.MustParseClaims(ctr.JWTManager())
 	// Global middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
