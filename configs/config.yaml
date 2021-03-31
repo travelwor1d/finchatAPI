@@ -1,4 +1,5 @@
 port: ${PORT}
+logger: true
 auth:
   secret: ${AUTH_SECRET}
   duration: 15

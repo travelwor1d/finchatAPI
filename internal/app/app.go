@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/middleware"
 	"github.com/gofiber/fiber/v2"
@@ -13,7 +14,9 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	p := middleware.MustParseClaims(ctr.JWTManager())
 	// Global middleware
 	app.Use(recover.New())
-	app.Use(logger.New())
+	if appconfig.Config.Logger {
+		app.Use(logger.New())
+	}
 	app.Use(cors.New())
 
 	authv1 := app.Group("/auth/v1")

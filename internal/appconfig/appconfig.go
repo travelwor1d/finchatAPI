@@ -1,5 +1,19 @@
 package appconfig
 
+import (
+	"log"
+
+	"github.com/gopher-lib/config"
+)
+
+var Config AppConfig
+
+func init() {
+	if err := config.LoadFile(&Config, "configs/config.yaml"); err != nil {
+		log.Fatalf("failed to load app configuration: %v", err)
+	}
+}
+
 type Auth struct {
 	Secret   string
 	Duration int
@@ -32,6 +46,7 @@ type Pubnub struct {
 
 type AppConfig struct {
 	Port    string
+	Logger  bool
 	Auth    Auth    `mapstructure:"auth"`
 	Twilio  Twilio  `mapstructure:"twilio"`
 	Stripe  Stripe  `mapstructure:"stripe"`
