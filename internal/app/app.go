@@ -42,6 +42,11 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Delete("/users/:id", ctr.SoftDeleteUser)
 	apiv1.Post("/users/:id:undelete", ctr.UndeleteUser)
 
+	apiv1.Get("/users/:id/contacts", ctr.ListContacts)
+	apiv1.Get("/users/:id/contact-requests", ctr.ListContactRequests)
+	apiv1.Patch("/users/:contactOwnerID/contact-requests", ctr.CreateContactRequest)
+	apiv1.Patch("/users/:contactOwnerID/contact-requests/:id", ctr.PatchContactRequest)
+
 	apiv1.Get("/posts", ctr.ListPosts)
 	apiv1.Get("/posts/:id", ctr.GetPost)
 	apiv1.Post("/posts", ctr.CreatePost)

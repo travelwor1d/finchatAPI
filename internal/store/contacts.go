@@ -8,24 +8,24 @@ import (
 	"github.com/finchatapp/finchat-api/internal/model"
 )
 
-func (s *Store) ListContacts(ctx context.Context, p *Pagination) ([]*model.Contact, error) {
+func (s *Store) ListContacts(ctx context.Context, contactOwnerID int, p *Pagination) ([]*model.Contact, error) {
 	const query = `
-	SELECT * FROM contacts LIMIT ? OFFSET ?
+	SELECT * FROM contacts WHERE user_id = ? LIMIT ? OFFSET ?
 	`
 	var posts []*model.Contact
-	err := s.db.SelectContext(ctx, &posts, query, p.Limit, p.Offset)
+	err := s.db.SelectContext(ctx, &posts, query, contactOwnerID, p.Limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}
 	return posts, nil
 }
 
-func (s *Store) ListContactRequests(ctx context.Context, p *Pagination) ([]*model.Contact, error) {
+func (s *Store) ListContactRequests(ctx context.Context, contactOwnerID int, p *Pagination) ([]*model.Contact, error) {
 	const query = `
-	SELECT * FROM contact_requests LIMIT ? OFFSET ?
+	SELECT * FROM contact_requests user_id = ? LIMIT ? OFFSET ?
 	`
 	var posts []*model.Contact
-	err := s.db.SelectContext(ctx, &posts, query, p.Limit, p.Offset)
+	err := s.db.SelectContext(ctx, &posts, query, contactOwnerID, p.Limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}
