@@ -1,0 +1,5 @@
+.github
+migrations
+.gitignore
+.env.example
+README.md

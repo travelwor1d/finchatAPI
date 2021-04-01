@@ -1,1 +1,1 @@
-DROP TABLE goat_invite_codes, credentials, users;
+DROP TABLE posts, comments, goat_invite_codes, credentials, users;

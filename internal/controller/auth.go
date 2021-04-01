@@ -14,25 +14,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type LoginPayload struct {
+type loginPayload struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 func (ctr *Ctr) Login(c *fiber.Ctx) error {
-	var p LoginPayload
+	var p loginPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, fiber.StatusBadRequest, "failed to parse body", err).Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
 	creds, err := ctr.store.GetUserCredsByEmail(c.Context(), p.Email)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.InvalidCredentials, fiber.StatusBadRequest, "user not found").Send(c)
+		return httperr.New(codes.InvalidCredentials, http.StatusNotFound, "user not found").Send(c)
 	}
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if !matches([]byte(creds.Hash), []byte(p.Password)) {
-		return httperr.New(codes.InvalidCredentials, fiber.StatusBadRequest, "passwords did not match").Send(c)
+		return httperr.New(codes.InvalidCredentials, http.StatusBadRequest, "passwords did not match").Send(c)
 	}
 	token, err := ctr.jwtManager.Generate(fmt.Sprint(creds.UserID))
 	if err != nil {
@@ -41,7 +41,7 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"token": token})
 }
 
-type RegisterPayload struct {
+type registerPayload struct {
 	FirstName string `json:"firstName" validate:"required"`
 	LastName  string `json:"lastName" validate:"required"`
 	Phone     string `json:"phone" validate:"required"`
@@ -50,7 +50,7 @@ type RegisterPayload struct {
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
-	var p RegisterPayload
+	var p registerPayload
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}

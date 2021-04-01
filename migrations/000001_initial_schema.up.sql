@@ -12,7 +12,8 @@ CREATE TABLE users (
   profile_avatar varchar(255),
   last_seen timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now(),
-  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
+  deleted_at timestamp
 );
 
 CREATE TABLE credentials (
@@ -30,5 +31,30 @@ CREATE TABLE goat_invite_codes (
   created_by int NOT NULL REFERENCES users (id),
   status varchar(7) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'USED', 'EXPIRED')),
   -- The goat that registered using this code.
-  used_by int UNIQUE REFERENCES users (id)
+  used_by int UNIQUE REFERENCES users (id),
+  created_at timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
+);
+
+CREATE TABLE posts (
+  id int AUTO_INCREMENT PRIMARY KEY,
+  title varchar(255) NOT NULL,
+  content text NOT NULL,
+  -- Comma separeted list of image urls.
+  image_urls varchar(6553) NOT NULL DEFAULT '',
+  tickers varchar(6553) NOT NULL DEFAULT '',
+  posted_by int NOT NULL REFERENCES users (id),
+  published_at timestamp,
+  created_at timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
+);
+
+CREATE TABLE comments (
+  id int AUTO_INCREMENT PRIMARY KEY,
+  post_id int NOT NULL REFERENCES posts (id),
+  content text NOT NULL,
+  posted_by int NOT NULL REFERENCES users (id),
+  published_at timestamp,
+  created_at timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now()
 );

@@ -15,6 +15,10 @@ var (
 	ErrAlreadyExists = errors.New("already exists")
 )
 
+type Pagination struct {
+	Limit, Offset int
+}
+
 type DBTX interface {
 	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
 	GetContext(context.Context, interface{}, string, ...interface{}) error
@@ -38,39 +42,9 @@ func (s *Store) WithTx(tx *sqlx.Tx) *Store {
 	return &Store{tx, s.conn}
 }
 
-func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
-	const query = `
-	SELECT * FROM users WHERE id = ?
-	`
-	var user model.User
-	err := s.db.GetContext(ctx, &user, query, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
-func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
-	const query = `
-	SELECT * FROM users WHERE email = ?
-	`
-	var user model.User
-	err := s.db.GetContext(ctx, &user, query, email)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &user, nil
-}
-
 func (s *Store) GetUserCredsByEmail(ctx context.Context, email string) (*model.Creds, error) {
 	const query = `
-	SELECT c.* FROM credentials c JOIN users u ON c.user_id = u.id WHERE email = ?
+	SELECT c.* FROM credentials c JOIN users u ON c.user_id = u.id WHERE email = ? AND deleted_at IS NULL
 	`
 	var creds model.Creds
 	err := s.db.GetContext(ctx, &creds, query, email)
@@ -87,7 +61,7 @@ func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
 	const query = `
 	UPDATE users SET
 		verified = true
-	WHERE id = ?
+	WHERE id = ? AND deleted_at IS NULL
 	`
 	_, err := s.db.ExecContext(ctx, query, id)
 	if errors.Is(err, sql.ErrNoRows) {
