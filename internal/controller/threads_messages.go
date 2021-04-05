@@ -30,6 +30,10 @@ func (ctr *Ctr) ListThreads(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
+	if threads == nil {
+		// Return an empty array.
+		return c.JSON(fiber.Map{"threads": []interface{}{}})
+	}
 	return c.JSON(fiber.Map{"threads": threads})
 
 }
