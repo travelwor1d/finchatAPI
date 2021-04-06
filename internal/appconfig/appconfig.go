@@ -8,8 +8,8 @@ import (
 
 var Config AppConfig
 
-func init() {
-	if err := config.LoadFile(&Config, "configs/config.yaml"); err != nil {
+func Init(filename string) {
+	if err := config.LoadFile(&Config, filename); err != nil {
 		log.Fatalf("failed to load app configuration: %v", err)
 	}
 }

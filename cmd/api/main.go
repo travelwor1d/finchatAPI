@@ -21,6 +21,8 @@ import (
 )
 
 func main() {
+	appconfig.Init("configs/config.yaml")
+
 	c := twilio.NewClient(appconfig.Config.Twilio.SID, appconfig.Config.Twilio.Token, nil).Verify.Verifications
 	verifySvc := verify.New(c, appconfig.Config.Twilio.Verify)
 

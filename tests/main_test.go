@@ -22,7 +22,6 @@ import (
 	"github.com/finchatapp/finchat-api/internal/verify"
 	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gopher-lib/config"
 )
 
 var a *fiber.App
@@ -30,14 +29,11 @@ var a *fiber.App
 var userAuthToken, goatAuthToken string
 
 func TestMain(m *testing.M) {
-	var conf appconfig.AppConfig
-	if err := config.LoadFile(&conf, "../configs/config.yaml"); err != nil {
-		log.Fatalf("failed to load app configuration: %v", err)
-	}
+	appconfig.Init("../configs/config.yaml")
 
 	verifySvc := verify.Mock{}
 
-	db, err := store.Connect(conf.MySQL)
+	db, err := store.Connect(appconfig.Config.MySQL)
 	if err != nil {
 		log.Printf("failed to connect to mySQL db: %v", err)
 	}
@@ -49,7 +45,7 @@ func TestMain(m *testing.M) {
 	if err = seedDB(s); err != nil {
 		log.Fatal(err)
 	}
-	jwtM := token.NewJWTManager(conf.Auth.Secret, time.Duration(conf.Auth.Duration)*time.Minute)
+	jwtM := token.NewJWTManager(appconfig.Config.Auth.Secret, time.Duration(appconfig.Config.Auth.Duration)*time.Minute)
 	ctr := controller.New(s, jwtM, verifySvc, u, msg)
 
 	a = fiber.New()
