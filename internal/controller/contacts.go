@@ -12,6 +12,16 @@ import (
 	"github.com/gookit/validate"
 )
 
+func (ctr *Ctr) ListContactsOrRequests(c *fiber.Ctx) error {
+	requests := c.Query("requests", "false")
+	if requests == "true" {
+		return ctr.ListContactRequests(c)
+	} else if requests == "false" {
+		return ctr.ListContacts(c)
+	}
+	return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `requests` param").Send(c)
+}
+
 func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
 	id, httpErr := userID(c)
 	if httpErr != nil {
@@ -56,16 +66,9 @@ func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) ListContactRequests(c *fiber.Ctx) error {
-	userID, httpErr := userID(c)
+	id, httpErr := userID(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	id, err := c.ParamsInt("id")
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
-	}
-	if id != userID {
-		return httperr.New(codes.Omit, http.StatusForbidden, "ids in path and token does not match").Send(c)
 	}
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
@@ -87,7 +90,7 @@ func (ctr *Ctr) ListContactRequests(c *fiber.Ctx) error {
 }
 
 type createContactRequest struct {
-	ContactID int `json:"required"`
+	ContactID int `json:"contactId" validate:"required"`
 }
 
 func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
@@ -102,6 +105,9 @@ func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
 	id, httpErr := userID(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
+	}
+	if p.ContactID == id {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "user cannot request a contact with themself").Send(c)
 	}
 	r, err := ctr.store.CreateContactRequest(c.Context(), id, p.ContactID)
 	if err != nil {
@@ -124,9 +130,9 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	userID, err := c.ParamsInt("userID")
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `userID` param").Send(c)
+	userID, httpErr := userID(c)
+	if httpErr != nil {
+		return httpErr.Send(c)
 	}
 	id, err := c.ParamsInt("id")
 	if err != nil {
@@ -152,4 +158,24 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 		}
 	}
 	return httperr.New(codes.Omit, http.StatusBadRequest, "invalid status").Send(c)
+}
+
+func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
+	userID, httpErr := userID(c)
+	if httpErr != nil {
+		return httpErr.Send(c)
+	}
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+	}
+
+	err = ctr.store.DeleteContact(c.Context(), userID, id)
+	if errors.Is(err, store.ErrNotFound) {
+		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
+	}
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+	return c.JSON(fiber.Map{"success": true})
 }

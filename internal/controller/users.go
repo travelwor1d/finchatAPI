@@ -10,6 +10,7 @@ import (
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gookit/validate"
 )
 
 func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
@@ -74,6 +75,11 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
+	v := validate.Struct(p)
+	if !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+	}
+
 	id, httpErr := userID(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
@@ -94,12 +100,6 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 		return httpErr.Send(c)
 	}
 	err := ctr.store.SoftDeleteUser(c.Context(), id)
-	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
-	}
-	if errors.Is(err, store.ErrUserDeleted) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user was already deleted").Send(c)
-	}
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}

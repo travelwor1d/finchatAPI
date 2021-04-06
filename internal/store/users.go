@@ -204,7 +204,7 @@ func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
 	SELECT deleted_at IS NOT NULL FROM users WHERE id = ?
 	`
 	var isDeleted bool
-	err := s.db.GetContext(ctx, isDeleted, query, userID)
+	err := s.db.GetContext(ctx, &isDeleted, query, userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return false, ErrNotFound
 	}

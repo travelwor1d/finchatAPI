@@ -64,7 +64,7 @@ func (s *Store) GetContactRequest(ctx context.Context, id int) (*model.ContactRe
 
 func (s *Store) CreateContactRequest(ctx context.Context, contactOwnerID, contactID int) (*model.ContactRequest, error) {
 	const query = `
-	INSERT INTO contacts(user_id, contact_id, request_status) VALUES (?, ?, 'REQUESTED')
+	INSERT INTO users_contacts(user_id, contact_id, request_status) VALUES (?, ?, 'REQUESTED')
 	`
 	result, err := s.db.ExecContext(ctx, query, contactOwnerID, contactID)
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *Store) CreateContactRequest(ctx context.Context, contactOwnerID, contac
 
 func (s *Store) ApproveContactRequest(ctx context.Context, id int) error {
 	const query = `
-	UPDATE contacts SET request_status = 'ACCEPTED' WHERE id = ?
+	UPDATE users_contacts SET request_status = 'ACCEPTED' WHERE id = ?
 	`
 	_, err := s.db.ExecContext(ctx, query, id)
 	if errors.Is(err, sql.ErrNoRows) {
@@ -90,9 +90,20 @@ func (s *Store) ApproveContactRequest(ctx context.Context, id int) error {
 
 func (s *Store) DenyContactRequest(ctx context.Context, id int) error {
 	const query = `
-	UPDATE contacts SET request_status = 'DENIED' WHERE id = ?
+	UPDATE users_contacts SET request_status = 'DENIED' WHERE id = ?
 	`
 	_, err := s.db.ExecContext(ctx, query, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return ErrNotFound
+	}
+	return err
+}
+
+func (s *Store) DeleteContact(ctx context.Context, userID, id int) error {
+	const query = `
+	DELETE FROM users_contacts WHERE user_id = ? AND id = ?
+	`
+	_, err := s.db.ExecContext(ctx, query, userID, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
 	}
