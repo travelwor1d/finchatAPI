@@ -151,13 +151,14 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 		if err := ctr.store.ApproveContactRequest(c.Context(), id); err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
-	}
-	if p.Status == "DENIED" {
+	} else if p.Status == "DENIED" {
 		if err := ctr.store.DenyContactRequest(c.Context(), id); err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
+	} else {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid status").Send(c)
 	}
-	return httperr.New(codes.Omit, http.StatusBadRequest, "invalid status").Send(c)
+	return c.JSON(fiber.Map{"success": true})
 }
 
 func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
