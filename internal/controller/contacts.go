@@ -147,7 +147,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusForbidden, "cannot approve or deny not theirs contact request").Send(c)
 	}
 
-	if p.Status == "APPROVED" {
+	if p.Status == "ACCEPTED" {
 		if err := ctr.store.ApproveContactRequest(c.Context(), id); err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
