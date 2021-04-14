@@ -7,7 +7,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/gofiber/fiber/v2 v2.5.0
+	github.com/gofiber/fiber/v2 v2.7.2-0.20210413072304-ec42f3c0b9b8
 	github.com/gookit/validate v1.2.8
 	github.com/gopher-lib/config v0.1.1
 	github.com/jmoiron/sqlx v1.3.1
@@ -25,7 +25,7 @@ require (
 	github.com/stripe/stripe-go/v72 v72.37.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0 // indirect
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4 // indirect
 	golang.org/x/sys v0.0.0-20210316164454-77fc1eacc6aa // indirect
