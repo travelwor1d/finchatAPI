@@ -39,10 +39,11 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Delete("/users/:id", ctr.SoftDeleteUser)
 	apiv1.Post("/users/:id:undelete", ctr.UndeleteUser)
 
+	// Blogging API
 	apiv1.Get("/posts", ctr.ListPosts)
 	apiv1.Get("/posts/:id", ctr.GetPost)
 	apiv1.Post("/posts", ctr.CreatePost)
-	apiv1.Get("/comments", ctr.ListComments)
-	apiv1.Get("/comments/:id", ctr.GetComment)
-	apiv1.Post("/comments", ctr.CreateComment)
+	apiv1.Get("/posts/:postId/comments", ctr.ListComments)
+	apiv1.Get("/posts/:postId/comments/:id", ctr.GetComment)
+	apiv1.Post("/posts/:postId/comments", ctr.CreateComment)
 }
