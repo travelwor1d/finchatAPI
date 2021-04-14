@@ -26,19 +26,23 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 	}
 	creds, err := ctr.store.GetUserCredsByEmail(c.Context(), p.Email)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.InvalidCredentials, http.StatusNotFound, "user not found").Send(c)
+		return httperr.New(codes.InvalidCredentials, http.StatusNotFound, "the email you entered does not match an account").Send(c)
 	}
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if !matches([]byte(creds.Hash), []byte(p.Password)) {
-		return httperr.New(codes.InvalidCredentials, http.StatusBadRequest, "passwords did not match").Send(c)
+		return httperr.New(codes.InvalidCredentials, http.StatusBadRequest, "the password you entered is incorrect").Send(c)
+	}
+	user, err := ctr.store.GetUser(c.Context(), creds.UserID)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
 	}
 	token, err := ctr.jwtManager.Generate(fmt.Sprint(creds.UserID))
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"token": token})
+	return c.JSON(fiber.Map{"user": user, "token": token})
 }
 
 type registerPayload struct {
@@ -99,7 +103,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"token": token, "verified": user.Verified})
+	return c.JSON(fiber.Map{"user": user, "token": token})
 }
 
 func matches(hash, password []byte) bool {
