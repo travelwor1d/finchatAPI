@@ -14,7 +14,7 @@ import (
 
 func Setup(app *fiber.App, ctr *controller.Ctr) {
 	p := middleware.MustParseClaims(ctr.JWTManager())
-	l := middleware.Limiter(&middleware.LimiterConfig{Max: 5, Duration: time.Second})
+	l := middleware.Limiter(&middleware.LimiterConfig{Max: 5, Expiration: time.Second})
 	// Global middleware
 	app.Use(recover.New())
 	if appconfig.Config.Logger {

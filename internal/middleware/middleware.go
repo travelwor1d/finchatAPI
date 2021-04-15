@@ -42,8 +42,8 @@ func MustParseClaims(jm *token.JWTManager) fiber.Handler {
 }
 
 type LimiterConfig struct {
-	Max      int
-	Duration time.Duration
+	Max        int
+	Expiration time.Duration
 }
 
 func Limiter(config *LimiterConfig) fiber.Handler {
@@ -51,9 +51,9 @@ func Limiter(config *LimiterConfig) fiber.Handler {
 		Next: func(c *fiber.Ctx) bool {
 			return c.IP() == "127.0.0.1"
 		},
-		Max:      config.Max,
-		Duration: config.Duration,
-		Key: func(c *fiber.Ctx) string {
+		Max:        config.Max,
+		Expiration: config.Expiration,
+		KeyGenerator: func(c *fiber.Ctx) string {
 			return c.Get("x-forwarded-for")
 		},
 		LimitReached: func(c *fiber.Ctx) error {
