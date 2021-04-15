@@ -1,6 +1,8 @@
 package app
 
 import (
+	"time"
+
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/middleware"
@@ -24,7 +26,7 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	authv1.Post("/register", ctr.Register)
 	authv1.Get("/verify", p, ctr.RequestVerification)
 	authv1.Post("/verify", p, ctr.Verify)
-	authv1.Get("/email", ctr.Email)
+	authv1.Get("/email", middleware.Limiter(&middleware.LimiterConfig{Max: 5, Duration: time.Second}), ctr.Email)
 
 	apiv1 := app.Group("/api/v1", p)
 	apiv1.Get("/", func(c *fiber.Ctx) error {

@@ -111,8 +111,8 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 
 func (ctr *Ctr) Email(c *fiber.Ctx) error {
 	email := c.Query("email")
-	if email == "" {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "email is required").Send(c)
+	if !validate.IsEmail(email) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid email").Send(c)
 	}
 	taken, err := ctr.store.IsEmailTaken(c.Context(), email)
 	if err != nil {
