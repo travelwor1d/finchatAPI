@@ -48,3 +48,7 @@ func getUserTypes(t string) (string, error) {
 	}
 	return t, nil
 }
+
+func sendSuccess(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"success": true})
+}

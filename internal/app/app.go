@@ -56,4 +56,10 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Get("/posts/:postId/comments", ctr.ListComments)
 	apiv1.Get("/posts/:postId/comments/:id", ctr.GetComment)
 	apiv1.Post("/posts/:postId/comments", ctr.CreateComment)
+
+	// Post upvoting/downvoting
+	apiv1.Post("/posts/:id/upvote", ctr.UpvotePost)
+	apiv1.Delete("/posts/:id/upvote", ctr.RevertPostUpvote)
+	apiv1.Post("/posts/:id/downvote", ctr.DownvotePost)
+	apiv1.Delete("/posts/:id/downvote", ctr.RevertPostDownvote)
 }

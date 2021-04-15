@@ -104,6 +104,18 @@ CREATE TABLE posts (
   FOREIGN KEY (posted_by) REFERENCES users (id)
 );
 
+CREATE TABLE post_votes (
+  post_id int unsigned NOT NULL,
+  user_id int unsigned NOT NULL,
+  value smallint NOT NULL CHECK (value IN (-1, 1)),
+  created_at timestamp NOT NULL DEFAULT now(),
+  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
+
+  PRIMARY KEY (post_id, user_id),
+  FOREIGN KEY (post_id) REFERENCES posts (id),
+  FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
 CREATE TABLE comments (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
   post_id int unsigned NOT NULL,
