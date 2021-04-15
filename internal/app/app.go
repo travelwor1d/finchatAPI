@@ -49,15 +49,11 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Patch("/users/me/contacts/:id", ctr.PatchContactRequest)
 	apiv1.Delete("/users/me/contacts/:id", ctr.DeleteContact)
 
+	// Blogging API
 	apiv1.Get("/posts", ctr.ListPosts)
 	apiv1.Get("/posts/:id", ctr.GetPost)
 	apiv1.Post("/posts", ctr.CreatePost)
-	apiv1.Get("/comments", ctr.ListComments)
-	apiv1.Get("/comments/:id", ctr.GetComment)
-	apiv1.Post("/comments", ctr.CreateComment)
-
-	apiv1.Get("/threads", ctr.ListThreads)
-	apiv1.Get("/threads/:id", ctr.GetThread)
-	apiv1.Post("/threads", ctr.CreateThread)
-	apiv1.Post("/threads/:id/messages", ctr.SendMessage)
+	apiv1.Get("/posts/:postId/comments", ctr.ListComments)
+	apiv1.Get("/posts/:postId/comments/:id", ctr.GetComment)
+	apiv1.Post("/posts/:postId/comments", ctr.CreateComment)
 }
