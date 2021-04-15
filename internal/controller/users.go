@@ -4,11 +4,13 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gookit/validate"
 )
 
 func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
@@ -30,13 +32,27 @@ func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
+	if users == nil {
+		// Return an empty array.
+		return c.JSON(fiber.Map{"users": []interface{}{}})
+	}
 	return c.JSON(fiber.Map{"users": users})
 }
 
 func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+	var id int
+	var err error
+	var httpErr *httperr.HTTPErr
+	if strings.HasSuffix(c.Path(), "/me") {
+		id, httpErr = userID(c)
+		if err != nil {
+			return httpErr.Send(c)
+		}
+	} else {
+		id, err = strconv.Atoi(c.Params("id"))
+		if err != nil {
+			return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+		}
 	}
 	user, err := ctr.store.GetUser(c.Context(), id)
 	if errors.Is(err, store.ErrNotFound) {
@@ -59,16 +75,14 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+	v := validate.Struct(p)
+	if !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
-	claimsID, httpErr := userID(c)
+
+	id, httpErr := userID(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	if id != claimsID {
-		return httperr.New(codes.Omit, http.StatusForbidden, "ids in claims and path params did not match").Send(c)
 	}
 	user, err := ctr.store.UpdateUser(c.Context(), id, p.FirstName, p.LastName, p.ProfileAvatar)
 	if errors.Is(err, store.ErrNotFound) {
@@ -81,24 +95,11 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
-	}
-	claimsID, httpErr := userID(c)
+	id, httpErr := userID(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	if id != claimsID {
-		return httperr.New(codes.Omit, http.StatusForbidden, "ids in claims and path params did not match").Send(c)
-	}
-	err = ctr.store.SoftDeleteUser(c.Context(), id)
-	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
-	}
-	if errors.Is(err, store.ErrUserDeleted) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user was already deleted").Send(c)
-	}
+	err := ctr.store.SoftDeleteUser(c.Context(), id)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -106,18 +107,11 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
-	}
-	claimsID, httpErr := userID(c)
+	id, httpErr := userID(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	if id != claimsID {
-		return httperr.New(codes.Omit, http.StatusForbidden, "ids in claims and path params did not match").Send(c)
-	}
-	err = ctr.store.UndeleteUser(c.Context(), id)
+	err := ctr.store.UndeleteUser(c.Context(), id)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
 	}

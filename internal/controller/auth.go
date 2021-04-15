@@ -99,6 +99,9 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
+	if err := ctr.msg.User(user.ID).Register(c.Context(), user.FirstName, user.LastName, user.Email); err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
 	token, err := ctr.jwtManager.Generate(fmt.Sprint(user.ID))
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
