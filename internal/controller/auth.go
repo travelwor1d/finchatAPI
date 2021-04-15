@@ -109,6 +109,21 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"user": user, "token": token})
 }
 
+func (ctr *Ctr) Email(c *fiber.Ctx) error {
+	email := c.Query("email")
+	if email == "" {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "email is required").Send(c)
+	}
+	taken, err := ctr.store.IsEmailTaken(c.Context(), email)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+	if taken {
+		return c.JSON(fiber.Map{"taken": true, "message": "A user already exists with this email"})
+	}
+	return c.JSON(fiber.Map{"taken": false, "message": ""})
+}
+
 func matches(hash, password []byte) bool {
 	if err := bcrypt.CompareHashAndPassword(hash, password); err != nil {
 		return false
