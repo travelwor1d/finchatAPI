@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 )
@@ -50,24 +51,24 @@ func (s *Store) CreatePost(ctx context.Context, post *model.Post) (*model.Post, 
 	return s.GetPost(ctx, int(id))
 }
 
-func (s *Store) ListComments(ctx context.Context, p *Pagination) ([]*model.Comment, error) {
+func (s *Store) ListComments(ctx context.Context, postID int, p *Pagination) ([]*model.Comment, error) {
 	const query = `
-	SELECT * FROM comments LIMIT ? OFFSET ?
+	SELECT * FROM comments WHERE post_id = ? LIMIT ? OFFSET ?
 	`
 	var comments []*model.Comment
-	err := s.db.SelectContext(ctx, &comments, query, p.Limit, p.Offset)
+	err := s.db.SelectContext(ctx, &comments, query, postID, p.Limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}
 	return comments, nil
 }
 
-func (s *Store) GetComment(ctx context.Context, id int) (*model.Comment, error) {
+func (s *Store) GetComment(ctx context.Context, postID int, id int) (*model.Comment, error) {
 	const query = `
-	SELECT * FROM comments WHERE id = ?
+	SELECT * FROM comments WHERE post_id = ? AND id = ?
 	`
 	var comment model.Comment
-	err := s.db.GetContext(ctx, &comment, query, id)
+	err := s.db.GetContext(ctx, &comment, query, postID, id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -81,7 +82,7 @@ func (s *Store) CreateComment(ctx context.Context, comment *model.Comment) (*mod
 	const query = `
 	INSERT INTO comments(post_id, content, posted_by, published_at) VALUES (?, ?, ?, ?)
 	`
-	result, err := s.db.ExecContext(ctx, query, comment.PostID, comment.Content, comment.PostedBy, comment.PublishedAt)
+	result, err := s.db.ExecContext(ctx, query, comment.PostID, comment.Content, comment.PostedBy, time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -89,5 +90,5 @@ func (s *Store) CreateComment(ctx context.Context, comment *model.Comment) (*mod
 	if err != nil {
 		return nil, err
 	}
-	return s.GetComment(ctx, int(id))
+	return s.GetComment(ctx, comment.PostID, int(id))
 }
