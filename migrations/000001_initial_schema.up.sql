@@ -104,13 +104,6 @@ CREATE TABLE posts (
   FOREIGN KEY (posted_by) REFERENCES users (id)
 );
 
-CREATE VIEW posts_with_votes AS
-SELECT
-  post_id,
-  sum(CASE WHEN value > 0 THEN 1 ELSE 0 END) AS upvotes,
-  sum(CASE WHEN value < 0 THEN 1 ELSE 0 END) AS downvotes
-FROM post_votes GROUP BY post_id;
-
 CREATE TABLE post_votes (
   post_id int unsigned NOT NULL,
   user_id int unsigned NOT NULL,
@@ -122,6 +115,13 @@ CREATE TABLE post_votes (
   FOREIGN KEY (post_id) REFERENCES posts (id),
   FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE VIEW posts_with_votes AS
+SELECT
+  post_id,
+  sum(CASE WHEN value > 0 THEN 1 ELSE 0 END) AS upvotes,
+  sum(CASE WHEN value < 0 THEN 1 ELSE 0 END) AS downvotes
+FROM post_votes GROUP BY post_id;
 
 CREATE TABLE comments (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
