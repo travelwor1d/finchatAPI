@@ -27,6 +27,10 @@ func (ctr *Ctr) ListPosts(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
+	if posts == nil {
+		// Return an empty array.
+		return c.JSON(fiber.Map{"posts": []interface{}{}})
+	}
 	return c.JSON(fiber.Map{"posts": posts})
 }
 

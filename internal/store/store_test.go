@@ -12,7 +12,7 @@ import (
 
 func TestStore(t *testing.T) {
 	var conf appconfig.AppConfig
-	if err := config.LoadFile(&conf, "../../configs/config.yaml", "../../.env"); err != nil {
+	if err := config.LoadFile(&conf, "../../configs/config.yaml"); err != nil {
 		log.Fatalf("failed to load app configuration: %v", err)
 	}
 
