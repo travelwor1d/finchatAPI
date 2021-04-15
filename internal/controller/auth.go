@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
@@ -62,6 +63,10 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
+	// No predefined validator for a phone.
+	if !phonePattern.MatchString(p.Phone) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid phone number").Send(c)
+	}
 
 	var userType string
 	inviteCode := c.Query("inviteCode")
@@ -87,7 +92,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		userType = "USER"
 	}
 
-	user := &model.User{FirstName: p.FirstName, LastName: p.LastName, Phone: p.Phone, Email: p.Email, Type: userType}
+	user := &model.User{FirstName: p.FirstName, LastName: p.LastName, Phone: sanitizePhone(p.Phone), Email: p.Email, Type: userType}
 	user, err := ctr.store.CreateUser(c.Context(), user, p.Password, inviteCode)
 	if errors.Is(err, store.ErrAlreadyExists) {
 		return httperr.New(
@@ -124,9 +129,33 @@ func (ctr *Ctr) Email(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"taken": false, "message": ""})
 }
 
+var phonePattern = regexp.MustCompile(`^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$`)
+
+func (ctr *Ctr) Phone(c *fiber.Ctx) error {
+	phone := sanitizePhone(c.Query("phone"))
+	if !phonePattern.MatchString(phone) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid phone number").Send(c)
+	}
+	taken, err := ctr.store.IsPhoneTaken(c.Context(), phone)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+	if taken {
+		return c.JSON(fiber.Map{"taken": true, "message": "A user already exists with this phone number"})
+	}
+	return c.JSON(fiber.Map{"taken": false, "message": ""})
+}
+
 func matches(hash, password []byte) bool {
 	if err := bcrypt.CompareHashAndPassword(hash, password); err != nil {
 		return false
 	}
 	return true
+}
+
+var notDigitPattern = regexp.MustCompile(`[\D]`)
+
+// sanitizePhone removes all non digit characters phone a phone number.
+func sanitizePhone(s string) string {
+	return notDigitPattern.ReplaceAllString(s, "")
 }

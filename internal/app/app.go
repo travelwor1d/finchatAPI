@@ -14,6 +14,7 @@ import (
 
 func Setup(app *fiber.App, ctr *controller.Ctr) {
 	p := middleware.MustParseClaims(ctr.JWTManager())
+	l := middleware.Limiter(&middleware.LimiterConfig{Max: 5, Duration: time.Second})
 	// Global middleware
 	app.Use(recover.New())
 	if appconfig.Config.Logger {
@@ -26,7 +27,8 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	authv1.Post("/register", ctr.Register)
 	authv1.Get("/verify", p, ctr.RequestVerification)
 	authv1.Post("/verify", p, ctr.Verify)
-	authv1.Get("/email", middleware.Limiter(&middleware.LimiterConfig{Max: 5, Duration: time.Second}), ctr.Email)
+	authv1.Get("/email", l, ctr.Email)
+	authv1.Get("/phone", l, ctr.Phone)
 
 	apiv1 := app.Group("/api/v1", p)
 	apiv1.Get("/", func(c *fiber.Ctx) error {
