@@ -45,6 +45,12 @@ resource "google_project_service" "run" {
   disable_dependent_services = true
 }
 
+resource "google_project_service" "cloudidentity" {
+  project = local.project
+  service = "cloudidentity.googleapis.com"
+
+  disable_dependent_services = true
+}
 
 resource "google_project_service" "sqladmin" {
   project = local.project
@@ -79,6 +85,10 @@ resource "google_sql_database" "core" {
 
 locals {
   db_connection_string = "${google_sql_user.default.name}:${google_sql_user.default.password}@unix(/cloudsql/${google_sql_database_instance.db.connection_name})/${google_sql_database.core.name}?parseTime=true"
+}
+
+data "google_container_registry_image" "finchat_api" {
+  name = "finchat-api"
 }
 
 resource "google_cloud_run_service" "api" {

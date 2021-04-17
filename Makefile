@@ -1,6 +1,7 @@
 include .env
 
 SHA=`git rev-parse HEAD`
+LATEST_TAG=`gcloud container images list-tags --format=json --limit=1 gcr.io/${GCP_PROJECT}/finchat-api | jq -r '.[0].tags[0]'`
 
 build: gen
 	go build -o api cmd/api/*
@@ -11,11 +12,14 @@ configure-gcloud:
 submit-build: configure-gcloud
 	gcloud builds submit -t gcr.io/$(GCP_PROJECT)/finchat-api:$(SHA)
 
+init-terraform:
+	terraform -chdir=terraform/staging init
+
 plan-terraform:
-	terraform -chdir=terraform/staging plan -var image_tag=$(SHA)
+	terraform -chdir=terraform/staging plan -var image_tag=$(LATEST_TAG)
 
 apply-terraform:
-	terraform -chdir=terraform/staging apply -var image_tag=$(SHA) -auto-approve
+	terraform -chdir=terraform/staging apply -var image_tag=$(LATEST_TAG) -auto-approve
 
 gen: init-swag
 
