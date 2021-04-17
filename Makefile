@@ -21,7 +21,7 @@ plan-terraform:
 apply-terraform:
 	terraform -chdir=terraform/staging apply -var image_tag=$(LATEST_TAG) -auto-approve
 
-gen: init-swag
+gen:
 
 run-dev: gen
 	go run cmd/api/*
