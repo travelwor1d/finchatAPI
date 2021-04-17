@@ -103,7 +103,7 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
@@ -121,5 +121,5 @@ func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }

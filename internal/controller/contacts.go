@@ -158,7 +158,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	} else {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid status").Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
@@ -178,5 +178,5 @@ func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }

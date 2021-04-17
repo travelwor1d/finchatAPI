@@ -65,7 +65,7 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 			return errInternal.SetDetail(err).Send(c)
 		}
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 type createSubscriptionPayload struct {
@@ -117,7 +117,7 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 		return errInternal.SetDetail(err).Send(c)
 	}
 
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
@@ -151,5 +151,5 @@ func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
