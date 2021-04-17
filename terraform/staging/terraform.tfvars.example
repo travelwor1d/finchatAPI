@@ -1,0 +1,8 @@
+project = ""
+
+db_username = ""
+db_password = ""
+
+twilio = {"sid": "", "token": "", "verify": ""}
+stripe = {"key": ""}
+pubnub = {"pubKey": "", "subKey": "", "secKey": ""}
