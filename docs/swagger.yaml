@@ -1,0 +1,48 @@
+basePath: /
+definitions:
+  httperr.HTTPErr:
+    properties:
+      code:
+        description: Application specific code.
+        type: integer
+      detail:
+        type: string
+      message:
+        description: User readable message.
+        type: string
+      status:
+        description: HTTP status.
+        type: integer
+    type: object
+host: api.finchat.com
+info:
+  contact: {}
+  title: Finchat API
+  version: "1.0"
+paths:
+  /auth/v1/login:
+    post:
+      consumes:
+      - application/json
+      operationId: login
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httperr.HTTPErr'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httperr.HTTPErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/httperr.HTTPErr'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httperr.HTTPErr'
+      summary: Login a user
+swagger: "2.0"

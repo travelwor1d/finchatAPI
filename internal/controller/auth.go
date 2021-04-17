@@ -19,6 +19,16 @@ type loginPayload struct {
 	Password string `json:"password"`
 }
 
+// @Summary Login a user
+// @Description ...
+// @ID login
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} httperr.HTTPErr
+// @Failure 400 {object} httperr.HTTPErr
+// @Failure 404 {object} httperr.HTTPErr
+// @Failure 500 {object} httperr.HTTPErr
+// @Router /auth/v1/login [post]
 func (ctr *Ctr) Login(c *fiber.Ctx) error {
 	var p loginPayload
 	if err := c.BodyParser(&p); err != nil {
@@ -60,7 +70,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	}
 	v := validate.Struct(p)
 	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
 	}
 
 	var userType string

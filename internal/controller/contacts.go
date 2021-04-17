@@ -100,7 +100,7 @@ func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
 	}
 	v := validate.Struct(p)
 	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
 	}
 	id, httpErr := userID(c)
 	if httpErr != nil {
@@ -127,7 +127,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	}
 	v := validate.Struct(p)
 	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
 	}
 
 	userID, httpErr := userID(c)

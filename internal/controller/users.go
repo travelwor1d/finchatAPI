@@ -77,7 +77,7 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	}
 	v := validate.Struct(p)
 	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)
