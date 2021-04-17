@@ -1,4 +1,4 @@
-include .env
+-include .env
 
 SHA=`git rev-parse HEAD`
 LATEST_TAG=`gcloud container images list-tags --format=json --limit=1 gcr.io/${GCP_PROJECT}/finchat-api | jq -r '.[0].tags[0]'`
