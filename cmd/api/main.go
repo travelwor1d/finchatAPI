@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/storage"
+	firebase "firebase.google.com/go/v4"
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
@@ -27,6 +28,17 @@ func main() {
 	verifySvc := verify.New(c, appconfig.Config.Twilio.Verify)
 
 	stripe.Key = appconfig.Config.Stripe.Key
+
+	firebaseapp, err := firebase.NewApp(context.Background(), nil)
+	if err != nil {
+		log.Fatalf("failed initialize firebase app: %v", err)
+	}
+
+	auth, err := firebaseapp.Auth(context.Background())
+	if err != nil {
+		log.Fatalf("failed initialize firebase auth client: %v", err)
+	}
+	_ = auth
 
 	db, err := store.Connect(appconfig.Config.MySQL)
 	if err != nil {

@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go/storage v1.14.0
+	firebase.google.com/go/v4 v4.5.0
 	github.com/brianolson/cbor_go v1.0.0 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
