@@ -7,16 +7,36 @@ func (s *Store) CreateUpvote(ctx context.Context, postID, userID int) error {
 	INSERT INTO post_votes(post_id, user_id, value) VALUES (?, ?, 1)
 		ON DUPLICATE KEY UPDATE value = VALUES(value)
 	`
-	_, err := s.db.ExecContext(ctx, query, postID, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, postID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) DeleteUpvote(ctx context.Context, postID, userID int) error {
 	const query = `
 	DELETE FROM post_votes WHERE post_id = ? AND user_id = ? AND value = 1
 	`
-	_, err := s.db.ExecContext(ctx, query, postID, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, postID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 func (s *Store) CreateDownvote(ctx context.Context, postID, userID int) error {
@@ -24,14 +44,34 @@ func (s *Store) CreateDownvote(ctx context.Context, postID, userID int) error {
 	INSERT INTO post_votes(post_id, user_id, value) VALUES (?, ?, -1)
 		ON DUPLICATE KEY UPDATE value = VALUES(value)
 	`
-	_, err := s.db.ExecContext(ctx, query, postID, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, postID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) DeleteDownvote(ctx context.Context, postID, userID int) error {
 	const query = `
 	DELETE FROM post_votes WHERE post_id = ? AND user_id = ? AND value = -1
 	`
-	_, err := s.db.ExecContext(ctx, query, postID, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, postID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNotFound
+	}
+	return nil
 }

@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	ErrNotFound      = errors.New("not found")
-	ErrAlreadyExists = errors.New("already exists")
+	ErrNotFound       = errors.New("not found")
+	ErrNoRowsAffected = errors.New("no rows affected")
+	ErrAlreadyExists  = errors.New("already exists")
 )
 
 type Pagination struct {
@@ -63,11 +64,18 @@ func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
 		verified = true
 	WHERE id = ? AND deleted_at IS NULL
 	`
-	_, err := s.db.ExecContext(ctx, query, id)
-	if errors.Is(err, sql.ErrNoRows) {
-		return ErrNotFound
+	result, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
 	}
-	return err
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) SetPassword(ctx context.Context, id int, password string) error {
@@ -78,6 +86,16 @@ func (s *Store) SetPassword(ctx context.Context, id int, password string) error 
 	if err != nil {
 		return err
 	}
-	_, err = s.db.ExecContext(ctx, query, string(hash), id, string(hash))
-	return err
+	result, err := s.db.ExecContext(ctx, query, string(hash), id, string(hash))
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }

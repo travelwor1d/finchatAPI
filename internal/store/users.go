@@ -136,12 +136,16 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 		profile_avatar = coalesce(?, profile_avatar)
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
+	result, err := s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
 	if err != nil {
 		return nil, err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if r == 0 {
+		return nil, ErrNoRowsAffected
 	}
 	return s.GetUser(ctx, userID)
 }
@@ -160,8 +164,18 @@ func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
 		deleted_at = now()
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
@@ -178,8 +192,18 @@ func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
 		deleted_at = NULL
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) error {
@@ -195,8 +219,18 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 		stripe_id = ?
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, stripeID, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, stripeID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
