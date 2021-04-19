@@ -11,7 +11,9 @@ import (
 
 func (s *Store) ListPosts(ctx context.Context, p *Pagination) ([]*model.Post, error) {
 	const query = `
-	SELECT * FROM posts LIMIT ? OFFSET ?
+	SELECT posts.*, coalesce(posts_with_votes.upvotes, 0) AS upvotes, coalesce(posts_with_votes.downvotes, 0) AS downvotes FROM posts
+		LEFT JOIN posts_with_votes ON posts.id = posts_with_votes.post_id
+	LIMIT ? OFFSET ?
 	`
 	var posts []*model.Post
 	err := s.db.SelectContext(ctx, &posts, query, p.Limit, p.Offset)
@@ -23,7 +25,8 @@ func (s *Store) ListPosts(ctx context.Context, p *Pagination) ([]*model.Post, er
 
 func (s *Store) GetPost(ctx context.Context, id int) (*model.Post, error) {
 	const query = `
-	SELECT * FROM posts WHERE id = ?
+	SELECT posts.*, coalesce(posts_with_votes.upvotes, 0) AS upvotes, coalesce(posts_with_votes.downvotes, 0) AS downvotes FROM posts
+		LEFT JOIN posts_with_votes ON posts.id = posts_with_votes.post_id WHERE id = ?
 	`
 	var post model.Post
 	err := s.db.GetContext(ctx, &post, query, id)

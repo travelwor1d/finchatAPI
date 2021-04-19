@@ -8,6 +8,8 @@ type Post struct {
 	ImageURLs   StringSlice `db:"image_urls" json:"imageUrls"`
 	Tickers     StringSlice `db:"tickers" json:"tickers"`
 	Content     string      `db:"content" json:"content"`
+	Upvotes     int         `db:"upvotes" json:"upvotes"`
+	Downvotes   int         `db:"downvotes" json:"downvotes"`
 	PostedBy    int         `db:"posted_by" json:"postedBy"`
 	PublishedAt *time.Time  `db:"published_at" json:"publishedAt"`
 	CreatedAt   time.Time   `db:"created_at" json:"createdAt"`
