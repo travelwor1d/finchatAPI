@@ -9,6 +9,10 @@ func (s *Store) CreateUpvote(ctx context.Context, postID, userID int) error {
 	`
 	result, err := s.db.ExecContext(ctx, query, postID, userID)
 	if err != nil {
+		// TODO: move err code to a constant.
+		if checkErrCode(err, 1452) {
+			return ErrNotFound
+		}
 		return err
 	}
 	r, err := result.RowsAffected()
@@ -46,6 +50,10 @@ func (s *Store) CreateDownvote(ctx context.Context, postID, userID int) error {
 	`
 	result, err := s.db.ExecContext(ctx, query, postID, userID)
 	if err != nil {
+		// TODO: move err code to a constant.
+		if checkErrCode(err, 1452) {
+			return ErrNotFound
+		}
 		return err
 	}
 	r, err := result.RowsAffected()
