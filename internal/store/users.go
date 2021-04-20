@@ -213,3 +213,27 @@ func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
 	}
 	return isDeleted, nil
 }
+
+func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, email)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *Store) IsPhoneTaken(ctx context.Context, phone string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE phone = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, phone)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
