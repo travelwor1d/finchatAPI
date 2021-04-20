@@ -20,6 +20,7 @@ require (
 	github.com/kevinburke/twilio-go v0.0.0-20210304181103-d5daab6d39b0
 	github.com/magiconair/properties v1.8.4 // indirect
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
+	github.com/nyaruka/phonenumbers v1.0.68
 	github.com/pelletier/go-toml v1.8.1 // indirect
 	github.com/pubnub/go v4.10.0+incompatible
 	github.com/spf13/afero v1.5.1 // indirect
