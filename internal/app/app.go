@@ -28,7 +28,7 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	authv1.Get("/verify", p, ctr.RequestVerification)
 	authv1.Post("/verify", p, ctr.Verify)
 	authv1.Get("/email", l, ctr.Email)
-	authv1.Get("/phone", l, ctr.Phone)
+	authv1.Get("/phonenumber", l, ctr.Phonenumber)
 
 	apiv1 := app.Group("/api/v1", p)
 	apiv1.Get("/", func(c *fiber.Ctx) error {
