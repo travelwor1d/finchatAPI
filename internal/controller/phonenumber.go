@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"fmt"
-
 	"github.com/nyaruka/phonenumbers"
 )
 
@@ -30,6 +28,5 @@ func validatePhonenumber(val, countryCode string) bool {
 	if err != nil {
 		return false
 	}
-	fmt.Println(num)
 	return phonenumbers.IsValidNumber(num)
 }

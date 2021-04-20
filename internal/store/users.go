@@ -64,15 +64,15 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 
 func (s *Store) CreateUser(ctx context.Context, user *model.User, password string, inviteCode ...string) (*model.User, error) {
 	const query = `
-	INSERT INTO users(first_name, last_name, phone, email, user_type, profile_avatar)
-		VALUES (?, ?, ?, ?, ?, ?)
+	INSERT INTO users(first_name, last_name, phonenumber, country_code, email, user_type, profile_avatar)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 	tx, err := s.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phone, user.Email, user.Type, user.ProfileAvatar)
+	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
 	if err != nil {
 		me, ok := err.(*mysql.MySQLError)
 		if !ok {
@@ -260,12 +260,12 @@ func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 	return exists, nil
 }
 
-func (s *Store) IsPhoneTaken(ctx context.Context, phone string) (bool, error) {
+func (s *Store) IsPhonenumberTaken(ctx context.Context, phonenumber string) (bool, error) {
 	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE phone = ?)
+	SELECT EXISTS (SELECT 1 FROM users WHERE phonenumber = ?)
 	`
 	var exists bool
-	err := s.db.GetContext(ctx, &exists, query, phone)
+	err := s.db.GetContext(ctx, &exists, query, phonenumber)
 	if err != nil {
 		return false, err
 	}

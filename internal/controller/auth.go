@@ -86,7 +86,9 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		userType = "USER"
 	}
 
-	user := &model.User{FirstName: p.FirstName, LastName: p.LastName, Phone: p.formattedPhonenumber(), Email: p.Email, Type: userType}
+	user := &model.User{
+		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: p.Email, Type: userType,
+	}
 	user, err := ctr.store.CreateUser(c.Context(), user, p.Password, inviteCode)
 	if errors.Is(err, store.ErrAlreadyExists) {
 		return httperr.New(
@@ -132,7 +134,7 @@ func (ctr *Ctr) Phonenumber(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	taken, err := ctr.store.IsPhoneTaken(c.Context(), q.formattedPhonenumber())
+	taken, err := ctr.store.IsPhonenumberTaken(c.Context(), q.formattedPhonenumber())
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}

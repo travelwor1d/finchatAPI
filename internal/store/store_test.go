@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/finchatapp/finchat-api/internal/appconfig"
+	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/gopher-lib/config"
 )
 
@@ -37,6 +38,20 @@ func TestStore(t *testing.T) {
 			t.Error(err)
 		}
 		fmt.Printf("user: %#v\n", user)
+	})
+
+	t.Run("CreateUser", func(t *testing.T) {
+		_, err := s.CreateUser(context.Background(), &model.User{
+			FirstName:   "Example",
+			LastName:    "User",
+			Phonenumber: "+489603962412",
+			CountryCode: "PL",
+			Email:       "user@gmail.com",
+			Type:        "USER",
+		}, "admin123")
+		if err != nil {
+			t.Error(err)
+		}
 	})
 }
 

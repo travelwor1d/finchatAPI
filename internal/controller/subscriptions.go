@@ -41,7 +41,7 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 		params := &stripe.CustomerParams{
 			Email:  &user.Email,
 			Name:   stripe.String(user.FirstName + " " + user.LastName),
-			Phone:  &user.Phone,
+			Phone:  &user.Phonenumber,
 			Source: &stripe.SourceParams{Token: &p.CardToken},
 		}
 		custmr, err := customer.New(params)
