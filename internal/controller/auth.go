@@ -114,7 +114,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"user": user, "token": token})
 }
 
-func (ctr *Ctr) Email(c *fiber.Ctx) error {
+func (ctr *Ctr) EmailValidation(c *fiber.Ctx) error {
 	email := c.Query("email")
 	if !validate.IsEmail(email) {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid email").Send(c)
@@ -129,7 +129,7 @@ func (ctr *Ctr) Email(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"taken": false, "message": ""})
 }
 
-func (ctr *Ctr) Phonenumber(c *fiber.Ctx) error {
+func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 	var q Phone
 	if err := c.QueryParser(&q); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse query string").Send(c)
