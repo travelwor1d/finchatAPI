@@ -144,7 +144,7 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 		return httperr.NewValidationErr(nil, "Please enter a valid phone number").Send(c)
 	}
 
-	taken, err := ctr.store.IsPhonenumberTaken(c.Context(), q.formattedPhonenumber())
+	taken, err := ctr.store.IsPhoneNumberTaken(c.Context(), q.formattedPhonenumber())
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}

@@ -6,14 +6,14 @@ import (
 
 type Phone struct {
 	CountryCode string `json:"countryCode" query:"countryCode" validate:"required"`
-	Number      string `json:"phonenumber" query:"phonenumber" validate:"required"`
+	Number      string `json:"phoneNumber" query:"phoneNumber" validate:"required"`
 }
 
 func (p Phone) Validate() bool {
 	return validatePhonenumber(p.Number, p.CountryCode)
 }
 
-// formattedPhonenumber returns formatted phonenumber if .Number is valid phone number,
+// formattedPhonenumber returns formatted phone number if .Number is valid phone number,
 // otherwise returns empty string.
 func (p Phone) formattedPhonenumber() string {
 	num, err := phonenumbers.Parse(p.Number, p.CountryCode)

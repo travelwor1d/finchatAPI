@@ -8,7 +8,7 @@ type Contact struct {
 	ContactID      int       `db:"contact_id" json:"contactId"`
 	FirstName      string    `db:"first_name" json:"firstName"`
 	LastName       string    `db:"last_name" json:"lastname"`
-	Phonenumber    string    `db:"phonenumber" json:"phonenumber"`
+	Phonenumber    string    `db:"phone_number" json:"phoneNumber"`
 	CountryCode    string    `db:"country_code" json:"countryCode"`
 	Email          string    `db:"email" json:"email"`
 	Type           string    `db:"user_type" json:"userType"`
@@ -25,7 +25,7 @@ type ContactRequest struct {
 	Status         string    `db:"request_status" json:"status"`
 	FirstName      string    `db:"first_name" json:"firstName"`
 	LastName       string    `db:"last_name" json:"lastName"`
-	Phonenumber    string    `db:"phonenumber" json:"phonenumber"`
+	Phonenumber    string    `db:"phone_number" json:"phoneNumber"`
 	CountryCode    string    `db:"country_code" json:"countryCode"`
 	Email          string    `db:"email" json:"email"`
 	Type           string    `db:"user_type" json:"userType"`

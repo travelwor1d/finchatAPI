@@ -7,7 +7,7 @@ type User struct {
 	StripeID      *string    `db:"stripe_id" json:"-"`
 	FirstName     string     `db:"first_name" json:"firstName"`
 	LastName      string     `db:"last_name" json:"lastName"`
-	Phonenumber   string     `db:"phonenumber" json:"phonenumber"`
+	Phonenumber   string     `db:"phone_number" json:"phoneNumber"`
 	CountryCode   string     `db:"country_code" json:"countryCode"`
 	Email         string     `db:"email" json:"email"`
 	Verified      bool       `db:"verified" json:"verified"`

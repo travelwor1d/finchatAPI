@@ -64,7 +64,7 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 
 func (s *Store) CreateUser(ctx context.Context, user *model.User, password string, inviteCode ...string) (*model.User, error) {
 	const query = `
-	INSERT INTO users(first_name, last_name, phonenumber, country_code, email, user_type, profile_avatar)
+	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 	tx, err := s.Begin()
@@ -260,12 +260,12 @@ func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 	return exists, nil
 }
 
-func (s *Store) IsPhonenumberTaken(ctx context.Context, phonenumber string) (bool, error) {
+func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (bool, error) {
 	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE phonenumber = ?)
+	SELECT EXISTS (SELECT 1 FROM users WHERE phone_number = ?)
 	`
 	var exists bool
-	err := s.db.GetContext(ctx, &exists, query, phonenumber)
+	err := s.db.GetContext(ctx, &exists, query, phoneNumber)
 	if err != nil {
 		return false, err
 	}
