@@ -80,7 +80,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code was already used").Send(c)
 		}
 		if status == "EXPIRED" {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code expired").Send(c)
+			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code has expired").Send(c)
 		}
 	} else {
 		userType = "USER"
