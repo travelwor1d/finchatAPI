@@ -89,6 +89,9 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.NewValidationErr(v, "Please enter valid input data").Send(c)
 	}
+	if p.Phone.Validate() {
+		return httperr.NewValidationErr(nil, "Please enter a valid phone number").Send(c)
+	}
 
 	user := &model.User{
 		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: p.Email, Type: userType,

@@ -6,11 +6,11 @@ import (
 
 type Phone struct {
 	CountryCode string `json:"countryCode" query:"countryCode" validate:"required"`
-	Number      string `json:"phonenumber" query:"phonenumber" validate:"validatePhonenumber"`
+	Number      string `json:"phonenumber" query:"phonenumber" validate:"required"`
 }
 
-func (p Phone) ValidatePhonenumber(val string) bool {
-	return validatePhonenumber(val, p.CountryCode)
+func (p Phone) Validate() bool {
+	return validatePhonenumber(p.Number, p.CountryCode)
 }
 
 // formattedPhonenumber returns formatted phonenumber if .Number is valid phone number,
