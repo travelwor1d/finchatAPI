@@ -67,7 +67,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if inviteCode != "" {
 		userType = "GOAT"
 		if len(inviteCode) != 6 {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code is 6 chars long string").Send(c)
+			return httperr.NewValidationErr(nil, "Your invitation code should be 6 chars long string").Send(c)
 		}
 		status, found, err := ctr.store.GetInviteCodeStatus(c.Context(), inviteCode)
 		if err != nil {
