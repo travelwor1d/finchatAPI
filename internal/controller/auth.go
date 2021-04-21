@@ -140,6 +140,9 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 	if v := validate.Struct(q); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
+	if q.Validate() {
+		return httperr.NewValidationErr(nil, "Please enter a valid phone number").Send(c)
+	}
 
 	taken, err := ctr.store.IsPhonenumberTaken(c.Context(), q.formattedPhonenumber())
 	if err != nil {
