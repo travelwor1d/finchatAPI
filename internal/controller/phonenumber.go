@@ -13,7 +13,7 @@ func (p Phone) Validate() bool {
 	return validatePhonenumber(p.Number, p.CountryCode)
 }
 
-// formattedPhonenumber returns formatted phonenumber if .Number is valid phone number,
+// formattedPhonenumber returns formatted phone number if .Number is valid phone number,
 // otherwise returns empty string.
 func (p Phone) formattedPhonenumber() string {
 	num, err := phonenumbers.Parse(p.Number, p.CountryCode)
