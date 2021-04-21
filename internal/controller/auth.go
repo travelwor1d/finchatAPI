@@ -124,9 +124,9 @@ func (ctr *Ctr) EmailValidation(c *fiber.Ctx) error {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if taken {
-		return c.JSON(fiber.Map{"taken": true, "message": "A user already exists with this email"})
+		return c.JSON(fiber.Map{"isTaken": true, "message": "A user already exists with this email"})
 	}
-	return c.JSON(fiber.Map{"taken": false, "message": ""})
+	return c.JSON(fiber.Map{"isTaken": false, "message": ""})
 }
 
 func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
@@ -143,9 +143,9 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if taken {
-		return c.JSON(fiber.Map{"taken": true, "message": "A user already exists with this phone number"})
+		return c.JSON(fiber.Map{"isTaken": true, "message": "A user already exists with this phone number"})
 	}
-	return c.JSON(fiber.Map{"taken": false, "message": ""})
+	return c.JSON(fiber.Map{"isTaken": false, "message": ""})
 }
 
 func matches(hash, password []byte) bool {
