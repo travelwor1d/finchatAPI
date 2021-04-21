@@ -98,8 +98,7 @@ func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
+	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 	id, httpErr := userID(c)
@@ -125,8 +124,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
+	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
@@ -158,7 +156,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	} else {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid status").Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
@@ -178,5 +176,5 @@ func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }

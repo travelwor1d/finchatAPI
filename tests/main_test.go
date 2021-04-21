@@ -65,11 +65,12 @@ func TestMain(m *testing.M) {
 
 func seedDB(s *store.Store) error {
 	user, err := s.CreateUser(context.Background(), &model.User{
-		FirstName: "Example",
-		LastName:  "User",
-		Phone:     "+489603962412",
-		Email:     "user@gmail.com",
-		Type:      "USER",
+		FirstName:   "Example",
+		LastName:    "User",
+		Phonenumber: "+489603962413",
+		CountryCode: "PL",
+		Email:       "user@gmail.com",
+		Type:        "USER",
 	}, "admin123")
 	if err != nil {
 		return err
@@ -79,11 +80,12 @@ func seedDB(s *store.Store) error {
 		return err
 	}
 	_, err = s.CreateUser(context.Background(), &model.User{
-		FirstName: "Example",
-		LastName:  "Goat",
-		Phone:     "+489603962412",
-		Email:     "goat@gmail.com",
-		Type:      "GOAT",
+		FirstName:   "Example",
+		LastName:    "Goat",
+		Phonenumber: "+489603962414",
+		CountryCode: "PL",
+		Email:       "goat@gmail.com",
+		Type:        "GOAT",
 	}, "admin123", code)
 	if err != nil {
 		return err
