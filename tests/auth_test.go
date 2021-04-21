@@ -18,7 +18,7 @@ func TestRegister(t *testing.T) {
 	{
     "firstName": "Martin",
     "lastName": "Lukasik",
-    "phonenumber": "+48507968492",
+    "phoneNumber": "+48507968492",
     "countryCode": "PL",
     "email": "martilukas7@gmail.com",
     "password": "password321"

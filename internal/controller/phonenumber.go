@@ -6,7 +6,7 @@ import (
 
 type Phone struct {
 	CountryCode string `json:"countryCode" query:"countryCode" validate:"required"`
-	Number      string `json:"phonenumber" query:"phonenumber" validate:"required"`
+	Number      string `json:"phoneNumber" query:"phoneNumber" validate:"required"`
 }
 
 func (p Phone) Validate() bool {
