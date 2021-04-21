@@ -50,7 +50,7 @@ type registerPayload struct {
 	LastName  string `json:"lastName" validate:"required|alpha"`
 	Phone
 	Email    string `json:"email" validate:"required|email"`
-	Password string `json:"password" validate:"required|minLen:6"`
+	Password string `json:"password" validate:"required"`
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
@@ -58,8 +58,8 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
 	}
-	if v := validate.Struct(p); !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+	if !validate.MinLength(p.Password, 8) {
+		return httperr.NewValidationErr(nil, "Your password should be at least 8 characters").Send(c)
 	}
 
 	var userType string
@@ -67,23 +67,27 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if inviteCode != "" {
 		userType = "GOAT"
 		if len(inviteCode) != 6 {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "Invite code is 6 chars long string").Send(c)
+			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code is 6 chars long string").Send(c)
 		}
 		status, found, err := ctr.store.GetInviteCodeStatus(c.Context(), inviteCode)
 		if err != nil {
 			return errInternal.SetDetail(err).Send(c)
 		}
 		if !found {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid invite code").Send(c)
+			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code is invalid").Send(c)
 		}
 		if status == "USED" {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "Invite code was already used").Send(c)
+			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code was already used").Send(c)
 		}
 		if status == "EXPIRED" {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "Invite code expired")
+			return httperr.New(codes.Omit, http.StatusBadRequest, "Your invitation code expired").Send(c)
 		}
 	} else {
 		userType = "USER"
+	}
+
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.NewValidationErr(v, "Please enter valid input data").Send(c)
 	}
 
 	user := &model.User{
