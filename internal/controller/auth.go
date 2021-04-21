@@ -89,7 +89,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.NewValidationErr(v, "Please enter valid input data").Send(c)
 	}
-	if p.Phone.Validate() {
+	if !p.Phone.Validate() {
 		return httperr.NewValidationErr(nil, "Please enter a valid phone number").Send(c)
 	}
 
@@ -140,7 +140,7 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 	if v := validate.Struct(q); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
-	if q.Validate() {
+	if !q.Validate() {
 		return httperr.NewValidationErr(nil, "Please enter a valid phone number").Send(c)
 	}
 
