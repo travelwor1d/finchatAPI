@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 
+	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
@@ -17,7 +19,14 @@ func (ctr *Ctr) UpvotePost(c *fiber.Ctx) error {
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	if err = ctr.store.CreateUpvote(c.Context(), id, userID); err != nil {
+	err = ctr.store.CreateUpvote(c.Context(), id, userID)
+	if errors.Is(err, store.ErrNoRowsAffected) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "already upvoted").Send(c)
+	}
+	if errors.Is(err, store.ErrNotFound) {
+		return httperr.New(codes.Omit, http.StatusNotFound, "post not found").Send(c)
+	}
+	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)
@@ -47,7 +56,14 @@ func (ctr *Ctr) DownvotePost(c *fiber.Ctx) error {
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	if err = ctr.store.CreateDownvote(c.Context(), id, userID); err != nil {
+	err = ctr.store.CreateDownvote(c.Context(), id, userID)
+	if errors.Is(err, store.ErrNoRowsAffected) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "already downvoted").Send(c)
+	}
+	if errors.Is(err, store.ErrNotFound) {
+		return httperr.New(codes.Omit, http.StatusNotFound, "post not found").Send(c)
+	}
+	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)

@@ -1,6 +1,8 @@
 package app
 
 import (
+	"time"
+
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/middleware"
@@ -12,6 +14,7 @@ import (
 
 func Setup(app *fiber.App, ctr *controller.Ctr) {
 	p := middleware.MustParseClaims(ctr.JWTManager())
+	l := middleware.Limiter(&middleware.LimiterConfig{Max: 5, Expiration: time.Second})
 	// Global middleware
 	app.Use(recover.New())
 	if appconfig.Config.Logger {
@@ -24,6 +27,8 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	authv1.Post("/register", ctr.Register)
 	authv1.Get("/verify", p, ctr.RequestVerification)
 	authv1.Post("/verify", p, ctr.Verify)
+	authv1.Get("/email-validation", l, ctr.EmailValidation)
+	authv1.Get("/phone-number-validation", l, ctr.PhonenumberValidation)
 
 	apiv1 := app.Group("/api/v1", p)
 	apiv1.Get("/", func(c *fiber.Ctx) error {

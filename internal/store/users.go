@@ -64,15 +64,15 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 
 func (s *Store) CreateUser(ctx context.Context, user *model.User, password string, inviteCode ...string) (*model.User, error) {
 	const query = `
-	INSERT INTO users(first_name, last_name, phone, email, user_type, profile_avatar)
-		VALUES (?, ?, ?, ?, ?, ?)
+	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 	tx, err := s.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phone, user.Email, user.Type, user.ProfileAvatar)
+	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
 	if err != nil {
 		me, ok := err.(*mysql.MySQLError)
 		if !ok {
@@ -136,12 +136,16 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 		profile_avatar = coalesce(?, profile_avatar)
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return nil, ErrNotFound
-	}
+	result, err := s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
 	if err != nil {
 		return nil, err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+	if r == 0 {
+		return nil, ErrNoRowsAffected
 	}
 	return s.GetUser(ctx, userID)
 }
@@ -160,8 +164,18 @@ func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
 		deleted_at = now()
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
@@ -178,8 +192,18 @@ func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
 		deleted_at = NULL
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) error {
@@ -195,8 +219,18 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 		stripe_id = ?
 	WHERE id = ?
 	`
-	_, err = s.db.ExecContext(ctx, query, stripeID, userID)
-	return err
+	result, err := s.db.ExecContext(ctx, query, stripeID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }
 
 func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
@@ -212,4 +246,28 @@ func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
 		return false, err
 	}
 	return isDeleted, nil
+}
+
+func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, email)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE phone_number = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, phoneNumber)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
 }

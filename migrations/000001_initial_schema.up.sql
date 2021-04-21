@@ -4,7 +4,8 @@ CREATE TABLE users (
   stripe_id varchar(50),
   first_name varchar(40) NOT NULL,
   last_name varchar(40) NOT NULL,
-  phone varchar(40) NOT NULL,
+  phone_number varchar(40) NOT NULL UNIQUE,
+  country_code char(2) NOT NULL,
   email varchar(50) NOT NULL UNIQUE,
   verified boolean NOT NULL DEFAULT false,
   user_type varchar(4) NOT NULL CHECK (user_type IN ('GOAT', 'USER')),
@@ -36,7 +37,8 @@ SELECT
   users_contacts.contact_id,
   users.first_name,
   users.last_name,
-  users.phone,
+  users.phone_number,
+  users.country_code,
   users.email,
   users.user_type,
   users.profile_avatar,
@@ -54,7 +56,8 @@ SELECT
   users_contacts.request_status,
   users.first_name,
   users.last_name,
-  users.phone,
+  users.phone_number,
+  users.country_code,
   users.email,
   users.user_type,
   users.profile_avatar,
@@ -115,6 +118,13 @@ CREATE TABLE post_votes (
   FOREIGN KEY (post_id) REFERENCES posts (id),
   FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+CREATE VIEW posts_with_votes AS
+SELECT
+  post_id,
+  sum(CASE WHEN value > 0 THEN 1 ELSE 0 END) AS upvotes,
+  sum(CASE WHEN value < 0 THEN 1 ELSE 0 END) AS downvotes
+FROM post_votes GROUP BY post_id;
 
 CREATE TABLE comments (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
