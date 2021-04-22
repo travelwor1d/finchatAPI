@@ -2,8 +2,8 @@ CREATE TABLE users (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
   -- Stripe customer id
   stripe_id varchar(50),
-  first_name varchar(40) NOT NULL,
-  last_name varchar(40) NOT NULL,
+  first_name varchar(50) NOT NULL,
+  last_name varchar(50) NOT NULL,
   phone_number varchar(40) NOT NULL UNIQUE,
   country_code char(2) NOT NULL,
   email varchar(50) NOT NULL UNIQUE,
