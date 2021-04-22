@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
@@ -24,7 +25,7 @@ func (ctr *Ctr) Login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
 	}
-	creds, err := ctr.store.GetUserCredsByEmail(c.Context(), p.Email)
+	creds, err := ctr.store.GetUserCredsByEmail(c.Context(), sanitizeEmail(p.Email))
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.InvalidCredentials, http.StatusNotFound, "The email you entered does not match an account").Send(c)
 	}
@@ -92,9 +93,12 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	if !p.Phone.Validate() {
 		return httperr.NewValidationErr(nil, "Please enter a valid phone number").Send(c)
 	}
+	if !validate.MaxLength(p.FirstName, 50) || !validate.MaxLength(p.LastName, 50) {
+		return httperr.NewValidationErr(nil, "First or last names on Finchat can't have too many characters").Send(c)
+	}
 
 	user := &model.User{
-		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: p.Email, Type: userType,
+		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: sanitizeEmail(p.Email), Type: userType,
 	}
 	user, err := ctr.store.CreateUser(c.Context(), user, p.Password, inviteCode)
 	if errors.Is(err, store.ErrAlreadyExists) {
@@ -122,7 +126,7 @@ func (ctr *Ctr) EmailValidation(c *fiber.Ctx) error {
 	if !validate.IsEmail(email) {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid email").Send(c)
 	}
-	taken, err := ctr.store.IsEmailTaken(c.Context(), email)
+	taken, err := ctr.store.IsEmailTaken(c.Context(), sanitizeEmail(email))
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -159,4 +163,8 @@ func matches(hash, password []byte) bool {
 		return false
 	}
 	return true
+}
+
+func sanitizeEmail(s string) string {
+	return strings.ToLower(s)
 }
