@@ -105,7 +105,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		return httperr.New(
 			codes.EmailAlreadyTaken,
 			http.StatusBadRequest,
-			"User with provided email already exists",
+			"User with provided email or phone number already exists",
 		).Send(c)
 	}
 	if err != nil {
