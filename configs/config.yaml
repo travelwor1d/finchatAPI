@@ -1,8 +1,5 @@
 port: ${PORT}
 logger: true
-auth:
-  secret: ${AUTH_SECRET}
-  duration: 15
 twilio:
   sid: ${TWILIO_SID}
   token: ${TWILIO_TOKEN}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"time"
 
 	"cloud.google.com/go/storage"
 	firebase "firebase.google.com/go/v4"
@@ -13,9 +12,9 @@ import (
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/messaging"
 	"github.com/finchatapp/finchat-api/internal/store"
+	"github.com/finchatapp/finchat-api/internal/token"
 	"github.com/finchatapp/finchat-api/internal/upload"
 	"github.com/finchatapp/finchat-api/internal/verify"
-	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
 	"github.com/kevinburke/twilio-go"
 	"github.com/stripe/stripe-go/v72"
@@ -32,7 +31,7 @@ func main() {
 	// Configure Stripe client.
 	stripe.Key = appconfig.Config.Stripe.Key
 
-	// Configure Firebase Authenticatio client.
+	// Configure Firebase Authentication client.
 	firebaseapp, err := firebase.NewApp(context.Background(), nil)
 	if err != nil {
 		log.Fatalf("failed initialize firebase app: %v", err)
@@ -41,7 +40,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed initialize firebase auth client: %v", err)
 	}
-	_ = auth
+	tokenSvc := token.NewService(auth)
 
 	// Configure Cloud Storage and upload service.
 	storageClint, err := storage.NewClient(context.Background())
@@ -61,10 +60,8 @@ func main() {
 	// Configure messaging service.
 	msg := messaging.New(appconfig.Config.Pubnub, s)
 
-	jwtM := token.NewJWTManager(appconfig.Config.Auth.Secret, time.Duration(appconfig.Config.Auth.Duration)*time.Minute)
-
 	// Setup application controller with its dependencies.
-	ctr := controller.New(s, jwtM, verifySvc, u, msg)
+	ctr := controller.New(s, tokenSvc, verifySvc, u, msg)
 
 	// Configure and run fiber.
 	a := fiber.New()

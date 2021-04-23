@@ -20,7 +20,7 @@ func (p Phone) formattedPhonenumber() string {
 	if err != nil {
 		return ""
 	}
-	return phonenumbers.Format(num, phonenumbers.NATIONAL)
+	return phonenumbers.Format(num, phonenumbers.E164)
 }
 
 func validatePhonenumber(val, countryCode string) bool {

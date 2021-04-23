@@ -62,7 +62,7 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 	return users, nil
 }
 
-func (s *Store) CreateUser(ctx context.Context, user *model.User, password string, inviteCode ...string) (*model.User, error) {
+func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
 	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -110,11 +110,6 @@ func (s *Store) CreateUser(ctx context.Context, user *model.User, password strin
 		}
 	}
 
-	err = s.WithTx(tx).SetPassword(ctx, user.ID, password)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -233,21 +228,6 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 	return nil
 }
 
-func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
-	const query = `
-	SELECT deleted_at IS NOT NULL FROM users WHERE id = ?
-	`
-	var isDeleted bool
-	err := s.db.GetContext(ctx, &isDeleted, query, userID)
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, ErrNotFound
-	}
-	if err != nil {
-		return false, err
-	}
-	return isDeleted, nil
-}
-
 func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 	const query = `
 	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
@@ -270,4 +250,39 @@ func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (boo
 		return false, err
 	}
 	return exists, nil
+}
+
+func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
+	const query = `
+	UPDATE users SET
+		verified = true
+	WHERE id = ? AND deleted_at IS NULL
+	`
+	result, err := s.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
+}
+
+func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
+	const query = `
+	SELECT deleted_at IS NOT NULL FROM users WHERE id = ?
+	`
+	var isDeleted bool
+	err := s.db.GetContext(ctx, &isDeleted, query, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return false, ErrNotFound
+	}
+	if err != nil {
+		return false, err
+	}
+	return isDeleted, nil
 }

@@ -6,7 +6,6 @@ require (
 	cloud.google.com/go/storage v1.14.0
 	firebase.google.com/go/v4 v4.5.0
 	github.com/brianolson/cbor_go v1.0.0 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofiber/fiber/v2 v2.7.2-0.20210413072304-ec42f3c0b9b8
@@ -31,7 +30,6 @@ require (
 	github.com/stripe/stripe-go/v72 v72.42.0
 	github.com/ttacon/builder v0.0.0-20170518171403-c099f663e1c2 // indirect
 	github.com/ttacon/libphonenumber v1.1.0 // indirect
-	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210414194228-064579744ee0 // indirect
 	golang.org/x/oauth2 v0.0.0-20210413134643-5e61552d6c78 // indirect

@@ -1,20 +1,18 @@
 package middleware
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/finchatapp/finchat-api/internal/token"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
-	"github.com/finchatapp/finchat-api/pkg/token"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 )
 
-func MustParseClaims(jm *token.JWTManager) fiber.Handler {
+func MustParseClaims(tokenSvc token.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		idToken := c.Cookies("token")
 		if idToken == "" {
@@ -28,15 +26,13 @@ func MustParseClaims(jm *token.JWTManager) fiber.Handler {
 			}
 			idToken = splitAuth[1]
 		}
-		claims, err := jm.Verify(idToken)
-		if errors.Is(err, token.ErrExpired) && claims != nil {
-			return httperr.New(codes.Omit, http.StatusUnauthorized, "expired JWT").
-				SetDetail(fmt.Sprintf("JWT expired at: %v", time.Unix(claims.ExpiresAt, 0))).Send(c)
-		}
+
+		token, err := tokenSvc.VerifyIDToken(c.Context(), idToken)
 		if err != nil {
-			return httperr.New(codes.Omit, http.StatusUnauthorized, "invalid JWT").Send(c)
+			return httperr.New(codes.Omit, http.StatusUnauthorized, "invalid JWT").SetDetail(err).Send(c)
 		}
-		c.Locals("claims", claims)
+
+		c.Locals("uid", token.UID)
 		return c.Next()
 	}
 }

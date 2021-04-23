@@ -67,16 +67,6 @@ SELECT
 FROM users_contacts JOIN users ON users_contacts.contact_id = users.id
 WHERE request_status IN ('REQUESTED', 'DENIED') AND users.deleted_at IS NULL;
 
-CREATE TABLE credentials (
-  id int unsigned AUTO_INCREMENT PRIMARY KEY,
-  user_id int unsigned NOT NULL UNIQUE,
-  hash varchar(255) NOT NULL,
-  created_at timestamp NOT NULL DEFAULT now(),
-  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
-
-  FOREIGN KEY (user_id) REFERENCES users (id)
-);
-
 CREATE TABLE goat_invite_codes (
   -- Generated on row creation.
   invite_code char(6) PRIMARY KEY,
