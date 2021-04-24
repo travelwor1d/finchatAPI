@@ -1,8 +1,9 @@
-DROP VIEW posts_with_votes;
-DROP VIEW contact_requests, contacts;
+DROP VIEW IF EXISTS posts_with_votes;
+DROP VIEW IF EXISTS contact_requests, contacts;
 
-DROP TABLE thread_messages, thread_participants; -- Probably tables are not needed.
-DROP TABLE threads; -- Probably table is not needed.
-DROP TABLE comments, post_votes;
-DROP TABLE posts, goat_invite_codes, users_contacts;
-DROP TABLE users;
+DROP TABLE IF EXISTS thread_messages, thread_participants; -- Probably tables are not needed.
+DROP TABLE IF EXISTS threads; -- Probably table is not needed.
+DROP TABLE IF EXISTS comments, post_votes;
+DROP TABLE IF EXISTS posts, goat_invite_codes, users_contacts;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS firebase_users;

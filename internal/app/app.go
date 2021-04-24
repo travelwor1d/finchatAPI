@@ -23,6 +23,7 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	app.Use(cors.New())
 
 	authv1 := app.Group("/auth/v1")
+	authv1.Post("/users", ctr.CreateUserWebhook)
 	authv1.Post("/register", ctr.Register)
 	authv1.Get("/verify", p, ctr.RequestVerification)
 	authv1.Post("/verify", p, ctr.Verify)

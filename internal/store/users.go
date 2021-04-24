@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/go-sql-driver/mysql"
@@ -64,15 +65,15 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 
 func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
-	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO users(firebase_id, first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	tx, err := s.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
+	result, err := tx.ExecContext(ctx, query, user.FirebaseID, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
 	if err != nil {
 		me, ok := err.(*mysql.MySQLError)
 		if !ok {
@@ -270,6 +271,14 @@ func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
 		return ErrNoRowsAffected
 	}
 	return nil
+}
+
+func (s *Store) CreateFirebaseUser(ctx context.Context, firebaseID, email string, createdAt time.Time) error {
+	const query = `
+	INSERT INTO firebase_users(id, email, created_at) VALUES (?, ?, ?)
+	`
+	_, err := s.db.ExecContext(ctx, query, firebaseID, email, createdAt)
+	return err
 }
 
 func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {

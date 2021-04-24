@@ -40,11 +40,12 @@ type Pubnub struct {
 }
 
 type AppConfig struct {
-	Port    string
-	Logger  bool
-	Twilio  Twilio  `mapstructure:"twilio"`
-	Stripe  Stripe  `mapstructure:"stripe"`
-	Pubnub  Pubnub  `mapstructure:"pubnub"`
-	MySQL   MySQL   `mapstructure:"mysql"`
-	Storage Storage `mapstructure:"storage"`
+	Port         string
+	Logger       bool
+	WebhookToken string
+	Twilio       Twilio  `mapstructure:"twilio"`
+	Stripe       Stripe  `mapstructure:"stripe"`
+	Pubnub       Pubnub  `mapstructure:"pubnub"`
+	MySQL        MySQL   `mapstructure:"mysql"`
+	Storage      Storage `mapstructure:"storage"`
 }

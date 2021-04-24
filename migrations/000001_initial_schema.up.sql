@@ -1,7 +1,14 @@
+CREATE TABLE firebase_users (
+  id varchar(50) NOT NULL PRIMARY KEY,
+  email varchar(50) NOT NULL UNIQUE,
+  created_at timestamp NOT NULL
+);
+
 CREATE TABLE users (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
+  firebase_id varchar(50) NOT NULL UNIQUE,
   -- Stripe customer id
-  stripe_id varchar(50),
+  stripe_id varchar(50) UNIQUE,
   first_name varchar(50) NOT NULL,
   last_name varchar(50) NOT NULL,
   phone_number varchar(40) NOT NULL UNIQUE,
@@ -14,7 +21,9 @@ CREATE TABLE users (
   last_seen timestamp NOT NULL DEFAULT now(),
   created_at timestamp NOT NULL DEFAULT now(),
   updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
-  deleted_at timestamp
+  deleted_at timestamp,
+
+  FOREIGN KEY (firebase_id) REFERENCES firebase_users (id)
 );
 
 CREATE TABLE users_contacts (
