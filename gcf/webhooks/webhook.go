@@ -37,7 +37,7 @@ func CreateUserWebhook(ctx context.Context, e AuthEvent) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Add("X-Webhook-Token", token)
+	req.Header.Set("X-Webhook-Token", token)
 	req.Header.Add("Content-Type", "application/json")
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
