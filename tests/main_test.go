@@ -1,14 +1,17 @@
 package tests
 
 import (
+	"context"
 	"log"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
 	"github.com/finchatapp/finchat-api/internal/messaging"
+	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/internal/token"
 	"github.com/finchatapp/finchat-api/internal/upload"
@@ -45,5 +48,21 @@ func TestMain(m *testing.M) {
 }
 
 func seedDB(s *store.Store) error {
-	return nil
+	users := []*model.User{
+		{FirebaseID: "123456", FirstName: "John", LastName: "Doe", Email: "john.doe@gmail.com", Phonenumber: "48907689431", CountryCode: "PL"},
+		{FirebaseID: "654321", FirstName: "Jane", LastName: "Doe", Email: "jane.doe@gmail.com", Phonenumber: "48907689432", CountryCode: "PL"},
+	}
+
+	var err error
+	wg := sync.WaitGroup{}
+	wg.Add(len(users))
+	for _, user := range users {
+		go func(u *model.User) {
+			_, err = s.CreateUser(context.Background(), u)
+			wg.Done()
+		}(user)
+	}
+	wg.Wait()
+
+	return err
 }
