@@ -49,8 +49,8 @@ func TestMain(m *testing.M) {
 
 func seedDB(s *store.Store) error {
 	users := []*model.User{
-		{FirebaseID: "123456", FirstName: "John", LastName: "Doe", Email: "john.doe@gmail.com", Phonenumber: "48907689431", CountryCode: "PL"},
-		{FirebaseID: "654321", FirstName: "Jane", LastName: "Doe", Email: "jane.doe@gmail.com", Phonenumber: "48907689432", CountryCode: "PL"},
+		{FirstName: "John", LastName: "Doe", Email: "john.doe@gmail.com", Phonenumber: "48907689431", CountryCode: "PL", Type: "USER"},
+		{FirstName: "Jane", LastName: "Doe", Email: "jane.doe@gmail.com", Phonenumber: "48907689432", CountryCode: "PL", Type: "USER"},
 	}
 
 	var err error

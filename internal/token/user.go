@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error)
+	DeleteFirebaseUser(ctx context.Context, uid string) error
 }
 
 type svc struct {
@@ -20,4 +21,8 @@ func NewService(c *auth.Client) Service {
 
 func (s *svc) VerifyIDToken(ctx context.Context, idToken string) (*auth.Token, error) {
 	return s.authClient.VerifyIDToken(ctx, idToken)
+}
+
+func (s *svc) DeleteFirebaseUser(ctx context.Context, uid string) error {
+	return s.authClient.DeleteUser(ctx, uid)
 }
