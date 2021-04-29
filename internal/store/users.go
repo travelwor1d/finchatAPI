@@ -259,7 +259,7 @@ func (s *Store) SetActiveUserByEmail(ctx context.Context, email string) error {
 	}
 	const query = `
 	UPDATE users SET
-		active = true
+		is_active = true
 	WHERE id = ? AND deleted_at IS NULL
 	`
 	result, err := s.db.ExecContext(ctx, query, user.ID)
@@ -279,8 +279,8 @@ func (s *Store) SetActiveUserByEmail(ctx context.Context, email string) error {
 func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
 	const query = `
 	UPDATE users SET
-		verified = true
-	WHERE id = ? AND active AND deleted_at IS NULL
+		is_verified = true
+	WHERE id = ? AND is_active AND deleted_at IS NULL
 	`
 	result, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {

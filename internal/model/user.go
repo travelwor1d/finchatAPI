@@ -4,14 +4,14 @@ import "time"
 
 type User struct {
 	ID            int        `db:"id" json:"id"`
-	Active        bool       `db:"active" json:"active"`
+	IsActive      bool       `db:"is_active" json:"isActive"`
 	StripeID      *string    `db:"stripe_id" json:"-"`
 	FirstName     string     `db:"first_name" json:"firstName"`
 	LastName      string     `db:"last_name" json:"lastName"`
 	Phonenumber   string     `db:"phone_number" json:"phoneNumber"`
 	CountryCode   string     `db:"country_code" json:"countryCode"`
 	Email         string     `db:"email" json:"email"`
-	Verified      bool       `db:"verified" json:"verified"`
+	IsVerified    bool       `db:"is_verified" json:"isVerified"`
 	Type          string     `db:"user_type" json:"userType"`
 	ProfileAvatar *string    `db:"profile_avatar" json:"profileAvatar"`
 	LastSeen      time.Time  `db:"last_seen" json:"lastSeen"`

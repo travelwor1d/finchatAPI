@@ -1,6 +1,6 @@
 CREATE TABLE users (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
-  active boolean NOT NULL DEFAULT false,
+  is_active boolean NOT NULL DEFAULT false,
   -- Stripe customer id
   stripe_id varchar(50) UNIQUE,
   first_name varchar(50) NOT NULL,
@@ -8,7 +8,7 @@ CREATE TABLE users (
   phone_number varchar(40) NOT NULL UNIQUE,
   country_code char(2) NOT NULL,
   email varchar(50) NOT NULL UNIQUE,
-  verified boolean NOT NULL DEFAULT false,
+  is_verified boolean NOT NULL DEFAULT false,
   user_type varchar(4) NOT NULL CHECK (user_type IN ('GOAT', 'USER')),
   -- profile_avatar is a filepath.
   profile_avatar varchar(255),
@@ -20,7 +20,7 @@ CREATE TABLE users (
 
 CREATE VIEW verified_active_users AS
 SELECT * FROM users
-WHERE verified AND active AND deleted_at IS NOT NULL;
+WHERE is_verified AND is_active AND deleted_at IS NOT NULL;
 
 CREATE TABLE users_contacts (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,

@@ -17,7 +17,7 @@ func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	if user.Verified {
+	if user.IsVerified {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "already verified").Send(c)
 	}
 	status, err := ctr.verify.Request(c.Context(), user.Phonenumber)
