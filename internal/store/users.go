@@ -17,7 +17,7 @@ var (
 
 func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
 	const query = `
-	SELECT * FROM users WHERE id = ? AND deleted_at IS NULL
+	SELECT * FROM users WHERE id = ?
 	`
 	var user model.User
 	err := s.db.GetContext(ctx, &user, query, id)
@@ -32,7 +32,7 @@ func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
 
 func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, error) {
 	const query = `
-	SELECT * FROM users WHERE email = ? AND deleted_at IS NULL
+	SELECT * FROM users WHERE email = ?
 	`
 	var user model.User
 	err := s.db.GetContext(ctx, &user, query, email)
@@ -47,11 +47,11 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, 
 
 func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, p *Pagination) ([]*model.User, error) {
 	query := fmt.Sprintf(`
-	SELECT * FROM users
+	SELECT * FROM verified_active_users
 		WHERE (
 			lower(first_name) LIKE '%s' OR
 			lower(last_name) LIKE '%s'
-		) AND user_type IN (%s) AND deleted_at IS NULL
+		) AND user_type IN (%s)
 	LIMIT ? OFFSET ?
 	`, "%"+searchInput+"%", "%"+searchInput+"%", userTypes)
 	var users []*model.User
@@ -62,7 +62,7 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 	return users, nil
 }
 
-func (s *Store) CreateUser(ctx context.Context, user *model.User, password string, inviteCode ...string) (*model.User, error) {
+func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
 	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -110,11 +110,6 @@ func (s *Store) CreateUser(ctx context.Context, user *model.User, password strin
 		}
 	}
 
-	err = s.WithTx(tx).SetPassword(ctx, user.ID, password)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
 	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
@@ -130,7 +125,7 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 		return nil, ErrUserDeleted
 	}
 	const query = `
-	UPDATE users SET
+	UPDATE verified_active_users SET
 		first_name = coalesce(?, first_name),
 		last_name = coalesce(?, last_name),
 		profile_avatar = coalesce(?, profile_avatar)
@@ -156,11 +151,11 @@ func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
 		return err
 	}
 	if isDeleted {
-		// Returns error that user was already"soft deleted".
+		// Return error that user was already "soft deleted".
 		return ErrUserDeleted
 	}
 	const query = `
-	UPDATE users SET
+	UPDATE verified_active_users SET
 		deleted_at = now()
 	WHERE id = ?
 	`
@@ -184,7 +179,7 @@ func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
 		return err
 	}
 	if !isDeleted {
-		// Returns error that user has not been "soft deleted", yet.
+		// Return error that user has not been "soft deleted", yet.
 		return ErrUserNotDeleted
 	}
 	const query = `
@@ -215,11 +210,79 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 		return ErrUserDeleted
 	}
 	const query = `
-	UPDATE users SET
+	UPDATE verified_active_users SET
 		stripe_id = ?
 	WHERE id = ?
 	`
 	result, err := s.db.ExecContext(ctx, query, stripeID, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
+}
+
+func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, email)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE phone_number = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, phoneNumber)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *Store) SetActiveUserByEmail(ctx context.Context, email string) error {
+	user, err := s.GetUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	const query = `
+	UPDATE users SET
+		is_active = true
+	WHERE id = ? AND deleted_at IS NULL
+	`
+	result, err := s.db.ExecContext(ctx, query, user.ID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
+}
+
+func (s *Store) SetVerifiedUser(ctx context.Context, id int) error {
+	const query = `
+	UPDATE users SET
+		is_verified = true
+	WHERE id = ? AND is_active AND deleted_at IS NULL
+	`
+	result, err := s.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -246,28 +309,4 @@ func (s *Store) isUserDeleted(ctx context.Context, userID int) (bool, error) {
 		return false, err
 	}
 	return isDeleted, nil
-}
-
-func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
-	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
-	`
-	var exists bool
-	err := s.db.GetContext(ctx, &exists, query, email)
-	if err != nil {
-		return false, err
-	}
-	return exists, nil
-}
-
-func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (bool, error) {
-	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE phone_number = ?)
-	`
-	var exists bool
-	err := s.db.GetContext(ctx, &exists, query, phoneNumber)
-	if err != nil {
-		return false, err
-	}
-	return exists, nil
 }

@@ -1,13 +1,14 @@
 CREATE TABLE users (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
+  is_active boolean NOT NULL DEFAULT false,
   -- Stripe customer id
-  stripe_id varchar(50),
+  stripe_id varchar(50) UNIQUE,
   first_name varchar(50) NOT NULL,
   last_name varchar(50) NOT NULL,
   phone_number varchar(40) NOT NULL UNIQUE,
   country_code char(2) NOT NULL,
   email varchar(50) NOT NULL UNIQUE,
-  verified boolean NOT NULL DEFAULT false,
+  is_verified boolean NOT NULL DEFAULT false,
   user_type varchar(4) NOT NULL CHECK (user_type IN ('GOAT', 'USER')),
   -- profile_avatar is a filepath.
   profile_avatar varchar(255),
@@ -16,6 +17,10 @@ CREATE TABLE users (
   updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
   deleted_at timestamp
 );
+
+CREATE VIEW verified_active_users AS
+SELECT * FROM users
+WHERE is_verified AND is_active AND deleted_at IS NOT NULL;
 
 CREATE TABLE users_contacts (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
@@ -66,16 +71,6 @@ SELECT
   users_contacts.updated_at
 FROM users_contacts JOIN users ON users_contacts.contact_id = users.id
 WHERE request_status IN ('REQUESTED', 'DENIED') AND users.deleted_at IS NULL;
-
-CREATE TABLE credentials (
-  id int unsigned AUTO_INCREMENT PRIMARY KEY,
-  user_id int unsigned NOT NULL UNIQUE,
-  hash varchar(255) NOT NULL,
-  created_at timestamp NOT NULL DEFAULT now(),
-  updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
-
-  FOREIGN KEY (user_id) REFERENCES users (id)
-);
 
 CREATE TABLE goat_invite_codes (
   -- Generated on row creation.

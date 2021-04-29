@@ -14,11 +14,6 @@ func Init(filename string) {
 	}
 }
 
-type Auth struct {
-	Secret   string
-	Duration int
-}
-
 type Twilio struct {
 	SID    string
 	Token  string
@@ -45,12 +40,12 @@ type Pubnub struct {
 }
 
 type AppConfig struct {
-	Port    string
-	Logger  bool
-	Auth    Auth    `mapstructure:"auth"`
-	Twilio  Twilio  `mapstructure:"twilio"`
-	Stripe  Stripe  `mapstructure:"stripe"`
-	Pubnub  Pubnub  `mapstructure:"pubnub"`
-	MySQL   MySQL   `mapstructure:"mysql"`
-	Storage Storage `mapstructure:"storage"`
+	Port         string
+	Logger       bool
+	WebhookToken string
+	Twilio       Twilio  `mapstructure:"twilio"`
+	Stripe       Stripe  `mapstructure:"stripe"`
+	Pubnub       Pubnub  `mapstructure:"pubnub"`
+	MySQL        MySQL   `mapstructure:"mysql"`
+	Storage      Storage `mapstructure:"storage"`
 }

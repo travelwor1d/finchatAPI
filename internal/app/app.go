@@ -13,7 +13,7 @@ import (
 )
 
 func Setup(app *fiber.App, ctr *controller.Ctr) {
-	p := middleware.MustParseClaims(ctr.JWTManager())
+	p := middleware.MustParseClaims(ctr.TokenSvc())
 	l := middleware.Limiter(&middleware.LimiterConfig{Max: 5, Expiration: time.Second})
 	// Global middleware
 	app.Use(recover.New())
@@ -23,7 +23,7 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	app.Use(cors.New())
 
 	authv1 := app.Group("/auth/v1")
-	authv1.Post("/login", ctr.Login)
+	authv1.Post("/users", ctr.CreateUserWebhook)
 	authv1.Post("/register", ctr.Register)
 	authv1.Get("/verify", p, ctr.RequestVerification)
 	authv1.Post("/verify", p, ctr.Verify)
