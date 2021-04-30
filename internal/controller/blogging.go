@@ -62,9 +62,8 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)
@@ -146,9 +145,8 @@ func (ctr *Ctr) CreateComment(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)

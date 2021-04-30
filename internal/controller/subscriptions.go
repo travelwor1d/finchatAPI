@@ -23,9 +23,8 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)
@@ -42,7 +41,7 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 		params := &stripe.CustomerParams{
 			Email:  &user.Email,
 			Name:   stripe.String(user.FirstName + " " + user.LastName),
-			Phone:  &user.Phone,
+			Phone:  &user.Phonenumber,
 			Source: &stripe.SourceParams{Token: &p.CardToken},
 		}
 		custmr, err := customer.New(params)
@@ -65,7 +64,7 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 			return errInternal.SetDetail(err).Send(c)
 		}
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 type createSubscriptionPayload struct {
@@ -82,9 +81,8 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)
@@ -117,7 +115,7 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 		return errInternal.SetDetail(err).Send(c)
 	}
 
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
@@ -125,9 +123,8 @@ func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)
@@ -151,5 +148,5 @@ func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }

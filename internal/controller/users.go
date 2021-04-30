@@ -75,9 +75,8 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	v := validate.Struct(p)
-	if !v.Validate() {
-		return httperr.New(codes.Omit, http.StatusUnprocessableEntity, v.Errors.One()).Send(c)
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
 	id, httpErr := userID(c)
@@ -103,7 +102,7 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
@@ -121,5 +120,5 @@ func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.JSON(fiber.Map{"success": true})
+	return sendSuccess(c)
 }

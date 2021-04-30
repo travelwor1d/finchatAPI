@@ -7,10 +7,10 @@ import (
 type Mock struct {
 }
 
-func (Mock) Request(ctx context.Context, phone string) (string, error) {
+func (Mock) Request(ctx context.Context, phoneNumber string) (string, error) {
 	return "pending", nil
 }
 
-func (Mock) Verify(ctx context.Context, phone, code string) (string, error) {
+func (Mock) Verify(ctx context.Context, phoneNumber, code string) (string, error) {
 	return "approved", nil
 }

@@ -42,9 +42,16 @@ func (s *Store) UseInviteCode(ctx context.Context, code string, userID int) erro
 		used_by = ?
 	WHERE invite_code = ? 
 	`
-	_, err := s.db.ExecContext(ctx, query, userID, code)
-	if errors.Is(err, sql.ErrNoRows) {
-		return ErrNotFound
+	result, err := s.db.ExecContext(ctx, query, userID, code)
+	if err != nil {
+		return err
 	}
-	return err
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
 }

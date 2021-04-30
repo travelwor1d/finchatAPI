@@ -17,10 +17,10 @@ func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	if user.Verified {
+	if user.IsVerified {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "already verified").Send(c)
 	}
-	status, err := ctr.verify.Request(c.Context(), user.Phone)
+	status, err := ctr.verify.Request(c.Context(), user.Phonenumber)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -44,7 +44,7 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
-	status, err := ctr.verify.Verify(c.Context(), user.Phone, p.Code)
+	status, err := ctr.verify.Verify(c.Context(), user.Phonenumber, p.Code)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
