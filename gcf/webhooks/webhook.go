@@ -22,9 +22,10 @@ type AuthEvent struct {
 var (
 	token    = os.Getenv("WEBHOOK_TOKEN")
 	endpoint = os.Getenv("WEBHOOK_ENDPOINT")
+	method   = os.Getenv("WEBHOOK_METHOD")
 )
 
-func CreateUserWebhook(ctx context.Context, e AuthEvent) error {
+func Webhook(ctx context.Context, e AuthEvent) error {
 	payload, err := json.Marshal(map[string]interface{}{
 		"firebaseId": e.UID,
 		"email":      e.Email,
@@ -33,7 +34,7 @@ func CreateUserWebhook(ctx context.Context, e AuthEvent) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewReader(payload))
+	req, err := http.NewRequestWithContext(ctx, method, endpoint, bytes.NewReader(payload))
 	if err != nil {
 		return err
 	}

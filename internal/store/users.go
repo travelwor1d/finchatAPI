@@ -173,6 +173,28 @@ func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
 	return nil
 }
 
+func (s *Store) DeleteUserByEmail(ctx context.Context, email string) error {
+	user, err := s.GetUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	const query = `
+	DELETE FROM users WHERE id = ?
+	`
+	result, err := s.db.ExecContext(ctx, query, user.ID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
+}
+
 func (s *Store) UndeleteUser(ctx context.Context, userID int) error {
 	isDeleted, err := s.isUserDeleted(ctx, userID)
 	if err != nil {
