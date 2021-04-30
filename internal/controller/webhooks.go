@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -31,16 +30,14 @@ func (ctr *Ctr) CreateUserWebhook(c *fiber.Ctx) error {
 	err := ctr.store.SetActiveUserByEmail(c.Context(), p.Email)
 	if errors.Is(err, store.ErrNotFound) {
 		if err := ctr.tokenSvc.DeleteFirebaseUser(c.Context(), p.FirebaseID); err != nil {
-			// TODO: report an error.
-			fmt.Printf("Failed to delete firebase user: %v\n", err)
-			return c.SendStatus(http.StatusInternalServerError)
+			return errInternal.SetDetail(err).Send(c)
 		}
-		return c.SendStatus(http.StatusBadRequest)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "No user with such email").Send(c)
 	}
 	if err != nil {
-		return c.SendStatus(http.StatusInternalServerError)
+		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.SendStatus(http.StatusCreated)
+	return sendSuccess(c)
 }
 
 func (ctr *Ctr) DeleteUserWebhook(c *fiber.Ctx) error {
@@ -54,10 +51,10 @@ func (ctr *Ctr) DeleteUserWebhook(c *fiber.Ctx) error {
 	}
 	err := ctr.store.SetActiveUserByEmail(c.Context(), p.Email)
 	if errors.Is(err, store.ErrNotFound) {
-		return c.SendStatus(http.StatusNotFound)
+		return httperr.New(codes.Omit, http.StatusNotFound, "No user with such email").Send(c)
 	}
 	if err != nil {
-		return c.SendStatus(http.StatusInternalServerError)
+		return errInternal.SetDetail(err).Send(c)
 	}
-	return c.SendStatus(http.StatusOK)
+	return sendSuccess(c)
 }
