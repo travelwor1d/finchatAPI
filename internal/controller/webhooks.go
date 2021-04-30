@@ -49,7 +49,7 @@ func (ctr *Ctr) DeleteUserWebhook(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
 	}
-	err := ctr.store.SetActiveUserByEmail(c.Context(), p.Email)
+	err := ctr.store.DeleteUserByEmail(c.Context(), p.Email)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "No user with such email").Send(c)
 	}

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
@@ -45,7 +46,8 @@ func Webhook(ctx context.Context, e AuthEvent) error {
 		return err
 	}
 	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("call was not successful, status: %s", resp.Status)
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("call was not successful, status: %s, body: %s", resp.Status, string(body))
 	}
 	return nil
 }
