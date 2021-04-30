@@ -9,13 +9,9 @@ import (
 )
 
 func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 	if user.IsVerified {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "already verified").Send(c)
@@ -36,13 +32,9 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	if err := c.BodyParser(&p); err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
 	}
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 	status, err := ctr.verify.Verify(c.Context(), user.Phonenumber, p.Code)
 	if err != nil {

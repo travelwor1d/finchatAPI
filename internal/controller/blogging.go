@@ -66,13 +66,9 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 
 	post, err := ctr.store.CreatePost(c.Context(), &model.Post{
@@ -149,13 +145,9 @@ func (ctr *Ctr) CreateComment(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 
 	comment, err := ctr.store.CreateComment(c.Context(), &model.Comment{

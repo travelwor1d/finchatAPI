@@ -1,6 +1,7 @@
 CREATE TABLE users (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
   is_active boolean NOT NULL DEFAULT false,
+  firebase_id varchar(50) UNIQUE,
   -- Stripe customer id
   stripe_id varchar(50) UNIQUE,
   first_name varchar(50) NOT NULL,
