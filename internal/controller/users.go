@@ -57,7 +57,7 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 		}
 		user, err = ctr.store.GetUser(c.Context(), id)
 		if errors.Is(err, store.ErrNotFound) {
-			return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
+			return httperr.New(codes.Omit, http.StatusNotFound, "User was not found. Please try again").Send(c)
 		}
 		if err != nil {
 			return errInternal.SetDetail(err).Send(c)

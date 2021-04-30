@@ -21,7 +21,7 @@ func (ctr *Ctr) userFromCtx(c *fiber.Ctx) (*model.User, *httperr.HTTPErr) {
 	}
 	user, err := ctr.store.GetUserByFirebaseID(c.Context(), uid)
 	if err != nil {
-		return nil, httperr.New(codes.Omit, http.StatusUnauthorized, "failed to get user by its firebase_id").SetDetail(err)
+		return nil, httperr.New(codes.Omit, http.StatusUnauthorized, "User was not found in Firebase. Please try again").SetDetail(err)
 	}
 	return user, nil
 }
