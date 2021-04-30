@@ -7,13 +7,9 @@ import (
 )
 
 func (ctr *Ctr) InviteGoat(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 	if user.Type == "USER" {
 		code, err := ctr.store.CreateGoatInviteCode(c.Context(), user.ID)

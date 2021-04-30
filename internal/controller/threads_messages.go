@@ -22,11 +22,11 @@ func (ctr *Ctr) ListThreads(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
 	}
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	threads, err := ctr.store.ListThreads(c.Context(), id, &store.Pagination{Limit: size, Offset: size * (page - 1)})
+	threads, err := ctr.store.ListThreads(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -68,14 +68,14 @@ func (ctr *Ctr) CreateThread(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
 	thread, err := ctr.store.CreateThread(c.Context(), &model.Thread{
 		Title: p.Title,
 		Type:  p.Type,
-	}, append(p.Participants, id))
+	}, append(p.Participants, user.ID))
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -100,12 +100,12 @@ func (ctr *Ctr) SendMessage(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
 	}
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
 
-	timestamp, err := ctr.msg.User(id).SendMessage(c.Context(), threadID, id, p.Message)
+	timestamp, err := ctr.msg.User(user.ID).SendMessage(c.Context(), threadID, user.ID, p.Message)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}

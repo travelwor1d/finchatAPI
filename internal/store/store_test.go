@@ -40,6 +40,14 @@ func TestStore(t *testing.T) {
 		fmt.Printf("user: %#v\n", user)
 	})
 
+	t.Run("DeleteUserByEmail", func(t *testing.T) {
+		err := s.DeleteUserByEmail(context.Background(), "martilukas7@gmail.com")
+		if err != nil {
+			t.Error(err)
+		}
+		fmt.Println("deleted")
+	})
+
 	t.Run("CreateUser", func(t *testing.T) {
 		_, err := s.CreateUser(context.Background(), &model.User{
 			FirstName:   "Example",
