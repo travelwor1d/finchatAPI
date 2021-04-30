@@ -27,13 +27,9 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 
 	if user.StripeID == nil {
@@ -85,15 +81,10 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
-	}
-
 	prodParams := &stripe.ProductParams{
 		Name: stripe.String(user.FirstName + " " + user.LastName + " subscription"),
 	}
@@ -127,13 +118,9 @@ func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 
 	if user.StripeID == nil {
@@ -144,7 +131,7 @@ func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 		Customer: user.StripeID,
 		Items:    []*stripe.SubscriptionItemsParams{{Price: &p.StripePriceID}},
 	}
-	_, err = sub.New(params)
+	_, err := sub.New(params)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}

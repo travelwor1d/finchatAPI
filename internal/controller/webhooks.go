@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
@@ -25,9 +26,11 @@ func (ctr *Ctr) CreateUserWebhook(c *fiber.Ctx) error {
 
 	var p webhookPayload
 	if err := c.BodyParser(&p); err != nil {
+		log.Printf("Failed to parse body: %v", err)
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
 	}
-	err := ctr.store.SetActiveUserByEmail(c.Context(), p.Email)
+	err := ctr.store.SetFirebaseIDByEmail(c.Context(), p.FirebaseID, p.Email)
+	log.Printf("Some error here: %v", err)
 	if errors.Is(err, store.ErrNotFound) {
 		if err := ctr.tokenSvc.DeleteFirebaseUser(c.Context(), p.FirebaseID); err != nil {
 			return errInternal.SetDetail(err).Send(c)

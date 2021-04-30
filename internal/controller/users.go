@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
@@ -41,10 +42,11 @@ func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 
 func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 	var id int
+	var user *model.User
 	var err error
 	var httpErr *httperr.HTTPErr
 	if strings.HasSuffix(c.Path(), "/me") {
-		id, httpErr = userID(c)
+		user, httpErr = ctr.userFromCtx(c)
 		if err != nil {
 			return httpErr.Send(c)
 		}
@@ -53,13 +55,13 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 		if err != nil {
 			return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
 		}
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
-	}
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
+		user, err = ctr.store.GetUser(c.Context(), id)
+		if errors.Is(err, store.ErrNotFound) {
+			return httperr.New(codes.Omit, http.StatusNotFound, "User was not found. Please try again").Send(c)
+		}
+		if err != nil {
+			return errInternal.SetDetail(err).Send(c)
+		}
 	}
 	return c.JSON(user)
 }
@@ -79,11 +81,11 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	user, err := ctr.store.UpdateUser(c.Context(), id, p.FirstName, p.LastName, p.ProfileAvatar)
+	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.ProfileAvatar)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
 	}
@@ -94,11 +96,11 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	err := ctr.store.SoftDeleteUser(c.Context(), id)
+	err := ctr.store.SoftDeleteUser(c.Context(), user.ID)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -106,11 +108,11 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	err := ctr.store.UndeleteUser(c.Context(), id)
+	err := ctr.store.UndeleteUser(c.Context(), user.ID)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
 	}

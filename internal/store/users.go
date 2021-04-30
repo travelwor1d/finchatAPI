@@ -15,6 +15,21 @@ var (
 	ErrUserNotDeleted = errors.New("cannot undelete user: user has not been deleted")
 )
 
+func (s *Store) GetUserByFirebaseID(ctx context.Context, uid string) (*model.User, error) {
+	const query = `
+	SELECT * FROM users WHERE firebase_id = ?
+	`
+	var user model.User
+	err := s.db.GetContext(ctx, &user, query, uid)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, ErrNotFound
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func (s *Store) GetUser(ctx context.Context, id int) (*model.User, error) {
 	const query = `
 	SELECT * FROM users WHERE id = ?
@@ -274,17 +289,18 @@ func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (boo
 	return exists, nil
 }
 
-func (s *Store) SetActiveUserByEmail(ctx context.Context, email string) error {
+func (s *Store) SetFirebaseIDByEmail(ctx context.Context, uid, email string) error {
 	user, err := s.GetUserByEmail(ctx, email)
 	if err != nil {
 		return err
 	}
 	const query = `
 	UPDATE users SET
+		firebase_id = ?,
 		is_active = true
 	WHERE id = ? AND deleted_at IS NULL
 	`
-	result, err := s.db.ExecContext(ctx, query, user.ID)
+	result, err := s.db.ExecContext(ctx, query, uid, user.ID)
 	if err != nil {
 		return err
 	}

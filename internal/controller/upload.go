@@ -10,13 +10,9 @@ import (
 )
 
 func (ctr *Ctr) UploadProvileAvatar(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
-	}
-	user, err := ctr.store.GetUser(c.Context(), id)
-	if err != nil {
-		return errInternal.SetDetail(err).Send(c)
 	}
 	file, err := c.FormFile("profileAvatar")
 	if err != nil {

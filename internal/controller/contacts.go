@@ -23,7 +23,7 @@ func (ctr *Ctr) ListContactsOrRequests(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
@@ -35,7 +35,7 @@ func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
 	}
-	contacts, err := ctr.store.ListContacts(c.Context(), id, &store.Pagination{Limit: size, Offset: size * (page - 1)})
+	contacts, err := ctr.store.ListContacts(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -47,7 +47,7 @@ func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
-	userID, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
@@ -55,7 +55,7 @@ func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
 	}
-	contact, err := ctr.store.GetContact(c.Context(), userID, id)
+	contact, err := ctr.store.GetContact(c.Context(), user.ID, id)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
 	}
@@ -66,7 +66,7 @@ func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) ListContactRequests(c *fiber.Ctx) error {
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
@@ -78,7 +78,7 @@ func (ctr *Ctr) ListContactRequests(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
 	}
-	contactRequests, err := ctr.store.ListContactRequests(c.Context(), id, &store.Pagination{Limit: size, Offset: size * (page - 1)})
+	contactRequests, err := ctr.store.ListContactRequests(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -101,14 +101,14 @@ func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
-	id, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	if p.ContactID == id {
+	if p.ContactID == user.ID {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "user cannot request a contact with themself").Send(c)
 	}
-	r, err := ctr.store.CreateContactRequest(c.Context(), id, p.ContactID)
+	r, err := ctr.store.CreateContactRequest(c.Context(), user.ID, p.ContactID)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
@@ -128,7 +128,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
 	}
 
-	userID, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
@@ -141,7 +141,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
 	}
-	if userID != r.ContactID {
+	if user.ID != r.ContactID {
 		return httperr.New(codes.Omit, http.StatusForbidden, "cannot approve or deny not theirs contact request").Send(c)
 	}
 
@@ -160,7 +160,7 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 }
 
 func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
-	userID, httpErr := userID(c)
+	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
@@ -169,7 +169,7 @@ func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
 	}
 
-	err = ctr.store.DeleteContact(c.Context(), userID, id)
+	err = ctr.store.DeleteContact(c.Context(), user.ID, id)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
 	}

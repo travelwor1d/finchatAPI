@@ -45,7 +45,7 @@ func Webhook(ctx context.Context, e AuthEvent) error {
 	if err != nil {
 		return err
 	}
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		body, _ := ioutil.ReadAll(resp.Body)
 		return fmt.Errorf("call was not successful, status: %s, body: %s", resp.Status, string(body))
 	}

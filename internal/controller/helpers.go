@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 
+	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
@@ -14,16 +14,16 @@ import (
 
 var errInternal = httperr.New(codes.Omit, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 
-func userID(c *fiber.Ctx) (int, *httperr.HTTPErr) {
+func (ctr *Ctr) userFromCtx(c *fiber.Ctx) (*model.User, *httperr.HTTPErr) {
 	uid, ok := c.Locals("uid").(string)
 	if !ok || uid == "" {
-		return 0, httperr.New(codes.Omit, http.StatusUnauthorized, "failed to retrieve uid from request context")
+		return nil, httperr.New(codes.Omit, http.StatusUnauthorized, "failed to retrieve uid from request context")
 	}
-	id, err := strconv.Atoi(uid)
+	user, err := ctr.store.GetUserByFirebaseID(c.Context(), uid)
 	if err != nil {
-		return 0, httperr.New(codes.Omit, http.StatusInternalServerError, "invalid uid")
+		return nil, httperr.New(codes.Omit, http.StatusUnauthorized, "User was not found in Firebase. Please try again").SetDetail(err)
 	}
-	return id, nil
+	return user, nil
 }
 
 func getUserTypes(t string) (string, error) {
