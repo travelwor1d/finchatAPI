@@ -267,7 +267,7 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 
 func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
+	SELECT EXISTS (SELECT 1 FROM active_users WHERE email = ?)
 	`
 	var exists bool
 	err := s.db.GetContext(ctx, &exists, query, email)
@@ -279,7 +279,7 @@ func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 
 func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (bool, error) {
 	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE phone_number = ?)
+	SELECT EXISTS (SELECT 1 FROM active_users WHERE phone_number = ?)
 	`
 	var exists bool
 	err := s.db.GetContext(ctx, &exists, query, phoneNumber)

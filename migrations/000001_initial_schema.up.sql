@@ -19,6 +19,11 @@ CREATE TABLE users (
   deleted_at timestamp
 );
 
+
+CREATE VIEW active_users AS
+SELECT * FROM users
+WHERE is_active AND deleted_at IS NOT NULL;
+
 CREATE VIEW verified_active_users AS
 SELECT * FROM users
 WHERE is_verified AND is_active AND deleted_at IS NOT NULL;
