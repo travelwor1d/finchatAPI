@@ -49,7 +49,7 @@ func TestStore(t *testing.T) {
 	})
 
 	t.Run("CreateUser", func(t *testing.T) {
-		_, err := s.CreateUser(context.Background(), &model.User{
+		_, err := s.UpsertUser(context.Background(), &model.User{
 			FirstName:   "Example",
 			LastName:    "User",
 			Phonenumber: "+489603962412",

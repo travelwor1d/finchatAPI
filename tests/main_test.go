@@ -58,7 +58,7 @@ func seedDB(s *store.Store) error {
 	wg.Add(len(users))
 	for _, user := range users {
 		go func(u *model.User) {
-			_, err = s.CreateUser(context.Background(), u)
+			_, err = s.UpsertUser(context.Background(), u)
 			wg.Done()
 		}(user)
 	}

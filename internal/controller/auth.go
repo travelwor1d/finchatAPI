@@ -1,12 +1,10 @@
 package controller
 
 import (
-	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/finchatapp/finchat-api/internal/model"
-	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
@@ -60,17 +58,22 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		return httperr.NewValidationErr(nil, "First or last names on Finchat can't have too many characters").Send(c)
 	}
 
-	user := &model.User{
-		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: sanitizeEmail(p.Email), Type: userType,
+	isTaken, err := ctr.store.IsEmailTaken(c.Context(), p.Email)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
 	}
-	user, err := ctr.store.CreateUser(c.Context(), user, inviteCode)
-	if errors.Is(err, store.ErrAlreadyExists) {
+	if isTaken {
 		return httperr.New(
 			codes.EmailAlreadyTaken,
 			http.StatusBadRequest,
 			"User with provided email or phone number already exists",
 		).Send(c)
 	}
+
+	user := &model.User{
+		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: sanitizeEmail(p.Email), Type: userType,
+	}
+	user, err = ctr.store.UpsertUser(c.Context(), user, inviteCode)
 	if err != nil {
 		return errInternal.SetDetail(err).Send(c)
 	}
