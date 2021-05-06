@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
@@ -31,6 +32,7 @@ func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 	}
 	users, err := ctr.store.SearchUsers(c.Context(), q, userTypes, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if users == nil {
@@ -60,6 +62,7 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 			return httperr.New(codes.Omit, http.StatusNotFound, "User was not found. Please try again").Send(c)
 		}
 		if err != nil {
+			logerr.LogError(err)
 			return errInternal.SetDetail(err).Send(c)
 		}
 	}
@@ -90,6 +93,7 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
 	}
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(user)
@@ -102,6 +106,7 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 	}
 	err := ctr.store.SoftDeleteUser(c.Context(), user.ID)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)
@@ -120,6 +125,7 @@ func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "user with such id has not been deleted").Send(c)
 	}
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)

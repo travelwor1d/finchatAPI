@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
@@ -33,6 +34,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		}
 		status, found, err := ctr.store.GetInviteCodeStatus(c.Context(), inviteCode)
 		if err != nil {
+			logerr.LogError(err)
 			return errInternal.SetDetail(err).Send(c)
 		}
 		if !found {
@@ -60,6 +62,7 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 
 	isTaken, err := ctr.store.IsEmailTaken(c.Context(), p.Email)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if isTaken {
@@ -75,9 +78,11 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	}
 	user, err = ctr.store.UpsertUser(c.Context(), user, inviteCode)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if err := ctr.msg.User(user.ID).Register(c.Context(), user.FirstName, user.LastName, user.Email); err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(fiber.Map{"user": user})
@@ -90,6 +95,7 @@ func (ctr *Ctr) EmailValidation(c *fiber.Ctx) error {
 	}
 	taken, err := ctr.store.IsEmailTaken(c.Context(), sanitizeEmail(email))
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if taken {
@@ -112,6 +118,7 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 
 	taken, err := ctr.store.IsPhoneNumberTaken(c.Context(), q.formattedPhonenumber())
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if taken {

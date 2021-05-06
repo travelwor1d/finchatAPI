@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
@@ -20,11 +21,13 @@ func (ctr *Ctr) UploadProvileAvatar(c *fiber.Ctx) error {
 	}
 	f, err := file.Open()
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	filename := ctr.upload.ProfiveAvatarFileName(user, filepath.Ext(file.Filename))
 	err = ctr.upload.Upload(c.Context(), filename, f)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(fiber.Map{"filename": filename})

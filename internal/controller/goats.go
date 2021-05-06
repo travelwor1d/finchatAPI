@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -14,6 +15,7 @@ func (ctr *Ctr) InviteGoat(c *fiber.Ctx) error {
 	if user.Type == "USER" {
 		code, err := ctr.store.CreateGoatInviteCode(c.Context(), user.ID)
 		if err != nil {
+			logerr.LogError(err)
 			return errInternal.SetDetail(err).Send(c)
 		}
 		return c.JSON(fiber.Map{"inviteCode": code})
@@ -27,6 +29,7 @@ func (ctr *Ctr) VerifyInviteCode(c *fiber.Ctx) error {
 	inviteCode := c.Params("inviteCode")
 	status, found, err := ctr.store.GetInviteCodeStatus(c.Context(), inviteCode)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if !found {

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/finchatapp/finchat-api/internal/appconfig"
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
@@ -33,11 +34,13 @@ func (ctr *Ctr) CreateUserWebhook(c *fiber.Ctx) error {
 	log.Printf("Some error here: %v", err)
 	if errors.Is(err, store.ErrNotFound) {
 		if err := ctr.tokenSvc.DeleteFirebaseUser(c.Context(), p.FirebaseID); err != nil {
+			logerr.LogError(err)
 			return errInternal.SetDetail(err).Send(c)
 		}
 		return httperr.New(codes.Omit, http.StatusBadRequest, "No user with such email").Send(c)
 	}
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)
@@ -57,6 +60,7 @@ func (ctr *Ctr) DeleteUserWebhook(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "No user with such email").Send(c)
 	}
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)

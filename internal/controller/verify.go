@@ -3,6 +3,7 @@ package controller
 import (
 	"net/http"
 
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +19,7 @@ func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
 	}
 	status, err := ctr.verify.Request(c.Context(), user.Phonenumber)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(fiber.Map{"verificationStatus": status})
@@ -38,6 +40,7 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	}
 	status, err := ctr.verify.Verify(c.Context(), user.Phonenumber, p.Code)
 	if err != nil {
+		logerr.LogError(err)
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if status == "pending" {
@@ -45,6 +48,7 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	}
 	if status == "approved" {
 		if err = ctr.store.SetVerifiedUser(c.Context(), user.ID); err != nil {
+			logerr.LogError(err)
 			return errInternal.SetDetail(err).Send(c)
 		}
 		return c.JSON(fiber.Map{"verificationStatus": status})
