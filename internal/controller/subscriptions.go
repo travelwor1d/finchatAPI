@@ -3,7 +3,6 @@ package controller
 import (
 	"net/http"
 
-	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
@@ -43,12 +42,12 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 		}
 		custmr, err := customer.New(params)
 		if err != nil {
-			logerr.LogError(err)
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 		err = ctr.store.SetStripeID(c.Context(), user.ID, custmr.ID)
 		if err != nil {
-			logerr.LogError(err)
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 	} else {
@@ -60,7 +59,7 @@ func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 			params,
 		)
 		if err != nil {
-			logerr.LogError(err)
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 	}
@@ -94,7 +93,7 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 	}
 	prod, err := product.New(prodParams)
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 
@@ -108,7 +107,7 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 	}
 	_, err = price.New(priceParams)
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 
@@ -139,7 +138,7 @@ func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 	}
 	_, err := sub.New(params)
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)

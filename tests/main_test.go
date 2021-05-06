@@ -7,9 +7,11 @@ import (
 	"sync"
 	"testing"
 
+	"cloud.google.com/go/errorreporting"
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/messaging"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
@@ -39,7 +41,22 @@ func TestMain(m *testing.M) {
 	if err = seedDB(s); err != nil {
 		log.Fatal(err)
 	}
-	ctr := controller.New(s, tokenSvc, verifySvc, u, msg)
+
+	projectID := "finchat-api-staging"
+	errorClient, err := errorreporting.NewClient(context.Background(), projectID, errorreporting.Config{
+		ServiceName: "finchat-api",
+		OnError: func(err error) {
+			log.Fatal(err)
+		},
+	})
+	if err != nil {
+		log.Fatalf("failed to create error reporting client: %v", err)
+	}
+	defer errorClient.Close()
+
+	lr := logerr.New(errorClient)
+
+	ctr := controller.New(s, tokenSvc, verifySvc, u, msg, lr)
 
 	a = fiber.New()
 	app.Setup(a, ctr)

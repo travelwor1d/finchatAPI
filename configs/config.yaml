@@ -1,5 +1,6 @@
 port: ${PORT}
 logger: true
+errorReporting: false
 webhookToken: ${WEBHOOK_TOKEN}
 twilio:
   sid: ${TWILIO_SID}

@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
@@ -26,7 +25,7 @@ func (ctr *Ctr) ListPosts(c *fiber.Ctx) error {
 	}
 	posts, err := ctr.store.ListPosts(c.Context(), &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if posts == nil {
@@ -46,7 +45,7 @@ func (ctr *Ctr) GetPost(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "post with such id was not found").Send(c)
 	}
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(post)
@@ -83,7 +82,7 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 		PublishedAt: p.PublishedAt,
 	})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(post)
@@ -104,7 +103,7 @@ func (ctr *Ctr) ListComments(c *fiber.Ctx) error {
 	}
 	comments, err := ctr.store.ListComments(c.Context(), postID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if comments == nil {
@@ -128,7 +127,7 @@ func (ctr *Ctr) GetComment(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "comment with such id was not found").Send(c)
 	}
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(comment)
@@ -162,7 +161,7 @@ func (ctr *Ctr) CreateComment(c *fiber.Ctx) error {
 		PostedBy: user.ID,
 	})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(comment)

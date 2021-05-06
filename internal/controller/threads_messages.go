@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
@@ -29,7 +28,7 @@ func (ctr *Ctr) ListThreads(c *fiber.Ctx) error {
 	}
 	threads, err := ctr.store.ListThreads(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if threads == nil {
@@ -50,7 +49,7 @@ func (ctr *Ctr) GetThread(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "no thread with such id").Send(c)
 	}
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(thread)
@@ -80,7 +79,7 @@ func (ctr *Ctr) CreateThread(c *fiber.Ctx) error {
 		Type:  p.Type,
 	}, append(p.Participants, user.ID))
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(thread)
@@ -111,7 +110,7 @@ func (ctr *Ctr) SendMessage(c *fiber.Ctx) error {
 
 	timestamp, err := ctr.msg.User(user.ID).SendMessage(c.Context(), threadID, user.ID, p.Message)
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(fiber.Map{

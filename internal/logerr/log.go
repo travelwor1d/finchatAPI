@@ -1,14 +1,26 @@
 package logerr
 
 import (
-	"fmt"
-	"os"
+	"log"
+
+	"cloud.google.com/go/errorreporting"
+	"github.com/finchatapp/finchat-api/internal/appconfig"
+	"github.com/valyala/fasthttp"
 )
 
-func LogError(a ...interface{}) {
-	fmt.Fprint(os.Stderr, a...)
+type Logerr struct {
+	r *errorreporting.Client
 }
 
-func LogErrorf(format string, a ...interface{}) {
-	fmt.Fprintf(os.Stderr, format, a...)
+func New(r *errorreporting.Client) *Logerr {
+	return &Logerr{r}
+}
+
+func (c *Logerr) LogError(err error, req *fasthttp.Request) {
+	if appconfig.Config.ErrorReporting {
+		c.r.Report(errorreporting.Entry{
+			Error: err,
+		})
+	}
+	log.Print(err)
 }

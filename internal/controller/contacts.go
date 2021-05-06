@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
@@ -38,7 +37,7 @@ func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
 	}
 	contacts, err := ctr.store.ListContacts(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if contacts == nil {
@@ -62,7 +61,7 @@ func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
 	}
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(contact)
@@ -83,7 +82,7 @@ func (ctr *Ctr) ListContactRequests(c *fiber.Ctx) error {
 	}
 	contactRequests, err := ctr.store.ListContactRequests(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if contactRequests == nil {
@@ -114,7 +113,7 @@ func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
 	}
 	r, err := ctr.store.CreateContactRequest(c.Context(), user.ID, p.ContactID)
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(r)
@@ -152,12 +151,12 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 
 	if p.Status == "ACCEPTED" {
 		if err := ctr.store.ApproveContactRequest(c.Context(), id); err != nil {
-			logerr.LogError(err)
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 	} else if p.Status == "DENIED" {
 		if err := ctr.store.DenyContactRequest(c.Context(), id); err != nil {
-			logerr.LogError(err)
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 	} else {
@@ -181,7 +180,7 @@ func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
 		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
 	}
 	if err != nil {
-		logerr.LogError(err)
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)
