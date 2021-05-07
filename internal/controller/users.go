@@ -69,6 +69,7 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 type updateUserPayload struct {
 	FirstName     *string `json:"firstName" validate:"-"`
 	LastName      *string `json:"lastName" validate:"-"`
+	Username      *string `json:"username" validate:"-"`
 	ProfileAvatar *string `json:"profileAvatar" validate:"-"`
 }
 
@@ -85,7 +86,7 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.ProfileAvatar)
+	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.Username, p.ProfileAvatar)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
 	}

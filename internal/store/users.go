@@ -79,15 +79,17 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 
 func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
-	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO users(first_name, last_name, phone_number, country_code, email, username, user_type, profile_avatar)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	tx, err := s.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
+	result, err := tx.ExecContext(ctx, query,
+		user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Username, user.Type, user.ProfileAvatar,
+	)
 	if err != nil {
 		me, ok := err.(*mysql.MySQLError)
 		if !ok {
@@ -131,7 +133,7 @@ func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...
 	return user, nil
 }
 
-func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName, profileAvatar *string) (*model.User, error) {
+func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName, username, profileAvatar *string) (*model.User, error) {
 	isDeleted, err := s.isUserDeleted(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -143,10 +145,11 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 	UPDATE verified_active_users SET
 		first_name = coalesce(?, first_name),
 		last_name = coalesce(?, last_name),
+		username = coalesce(?, username),
 		profile_avatar = coalesce(?, profile_avatar)
 	WHERE id = ?
 	`
-	result, err := s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
+	result, err := s.db.ExecContext(ctx, query, firstName, lastName, username, profileAvatar, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -283,6 +286,18 @@ func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (boo
 	`
 	var exists bool
 	err := s.db.GetContext(ctx, &exists, query, phoneNumber)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *Store) IsUsernameTaken(ctx context.Context, username string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE username = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, username)
 	if err != nil {
 		return false, err
 	}

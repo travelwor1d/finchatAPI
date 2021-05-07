@@ -17,7 +17,8 @@ type registerPayload struct {
 	FirstName string `json:"firstName" validate:"required|alpha"`
 	LastName  string `json:"lastName" validate:"required|alpha"`
 	Phone
-	Email string `json:"email" validate:"required|email"`
+	Email    string  `json:"email" validate:"required|email"`
+	Username *string `json:"username" validate:"maxLength:15"`
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
@@ -61,7 +62,10 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	}
 
 	user := &model.User{
-		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: sanitizeEmail(p.Email), Type: userType,
+		FirstName: p.FirstName, LastName: p.LastName,
+		Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode,
+		Email: sanitizeEmail(p.Email), Username: p.Username,
+		Type: userType,
 	}
 	user, err := ctr.store.CreateUser(c.Context(), user, inviteCode)
 	if errors.Is(err, store.ErrAlreadyExists) {
@@ -113,6 +117,21 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 	}
 	if taken {
 		return c.JSON(fiber.Map{"isTaken": true, "message": "A user already exists with this phone number"})
+	}
+	return c.JSON(fiber.Map{"isTaken": false, "message": ""})
+}
+
+func (ctr *Ctr) UsernameValidation(c *fiber.Ctx) error {
+	username := c.Query("username")
+	if !validate.IsAlphaNum(username) || !validate.MaxLength(username, 15) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid username").Send(c)
+	}
+	taken, err := ctr.store.IsUsernameTaken(c.Context(), username)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+	if taken {
+		return c.JSON(fiber.Map{"isTaken": true, "message": "A user already exists with this username"})
 	}
 	return c.JSON(fiber.Map{"isTaken": false, "message": ""})
 }
