@@ -17,14 +17,15 @@ import (
 func (ctr *Ctr) ListPosts(c *fiber.Ctx) error {
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `page` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `page` param").Send(c)
 	}
 	size, err := strconv.Atoi(c.Query("size", "10"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
 	posts, err := ctr.store.ListPosts(c.Context(), &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if posts == nil {
@@ -37,13 +38,14 @@ func (ctr *Ctr) ListPosts(c *fiber.Ctx) error {
 func (ctr *Ctr) GetPost(c *fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `id` param").Send(c)
 	}
 	post, err := ctr.store.GetPost(c.Context(), id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "post with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Post with such id was not found").Send(c)
 	}
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(post)
@@ -60,7 +62,7 @@ type createPostPayload struct {
 func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 	var p createPostPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -80,6 +82,7 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 		PublishedAt: p.PublishedAt,
 	})
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(post)
@@ -88,18 +91,19 @@ func (ctr *Ctr) CreatePost(c *fiber.Ctx) error {
 func (ctr *Ctr) ListComments(c *fiber.Ctx) error {
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `page` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `page` param").Send(c)
 	}
 	size, err := strconv.Atoi(c.Query("size", "10"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
 	postID, err := strconv.Atoi(c.Params("postId"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `postId` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `postId` param").Send(c)
 	}
 	comments, err := ctr.store.ListComments(c.Context(), postID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if comments == nil {
@@ -112,17 +116,18 @@ func (ctr *Ctr) ListComments(c *fiber.Ctx) error {
 func (ctr *Ctr) GetComment(c *fiber.Ctx) error {
 	postID, err := strconv.Atoi(c.Params("postId"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `postId` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `postId` param").Send(c)
 	}
 	id, err := strconv.Atoi(c.Params("id"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `id` param").Send(c)
 	}
 	comment, err := ctr.store.GetComment(c.Context(), postID, id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "comment with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Comment with such id was not found").Send(c)
 	}
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(comment)
@@ -135,11 +140,11 @@ type createCommentPayload struct {
 func (ctr *Ctr) CreateComment(c *fiber.Ctx) error {
 	postID, err := strconv.Atoi(c.Params("postId"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `postId` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `postId` param").Send(c)
 	}
 	var p createCommentPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -156,6 +161,7 @@ func (ctr *Ctr) CreateComment(c *fiber.Ctx) error {
 		PostedBy: user.ID,
 	})
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(comment)

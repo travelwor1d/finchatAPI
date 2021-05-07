@@ -18,6 +18,7 @@ func (ctr *Ctr) RequestVerification(c *fiber.Ctx) error {
 	}
 	status, err := ctr.verify.Request(c.Context(), user.Phonenumber)
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(fiber.Map{"verificationStatus": status})
@@ -30,7 +31,7 @@ type VerifyPayload struct {
 func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	var p VerifyPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
@@ -38,6 +39,7 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	}
 	status, err := ctr.verify.Verify(c.Context(), user.Phonenumber, p.Code)
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if status == "pending" {
@@ -45,6 +47,7 @@ func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	}
 	if status == "approved" {
 		if err = ctr.store.SetVerifiedUser(c.Context(), user.ID); err != nil {
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 		return c.JSON(fiber.Map{"verificationStatus": status})

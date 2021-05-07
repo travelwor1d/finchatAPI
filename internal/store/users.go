@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/finchatapp/finchat-api/internal/model"
-	"github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -77,38 +76,31 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 	return users, nil
 }
 
-func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
+func (s *Store) UpsertUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
 	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
+	ON DUPLICATE KEY UPDATE
+		first_name = VALUES(first_name),
+		last_name = VALUES(last_name),
+		phone_number = VALUES(phone_number),
+		country_code = VALUES(country_code),
+		email = VALUES(email),
+		user_type = VALUES(user_type),
+		profile_avatar = VALUES(profile_avatar)
 	`
 	tx, err := s.Begin()
 	if err != nil {
 		return nil, err
 	}
 
-	result, err := tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
-	if err != nil {
-		me, ok := err.(*mysql.MySQLError)
-		if !ok {
-			tx.Rollback()
-			return nil, err
-		}
-		if me.Number == 1062 {
-			tx.Rollback()
-			return nil, ErrAlreadyExists
-		}
-		tx.Rollback()
-		return nil, err
-	}
-
-	id, err := result.LastInsertId()
+	_, err = tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
 
-	user, err = s.WithTx(tx).GetUser(ctx, int(id))
+	user, err = s.WithTx(tx).GetUserByEmail(ctx, user.Email)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -118,7 +110,7 @@ func (s *Store) CreateUser(ctx context.Context, user *model.User, inviteCode ...
 		if len(inviteCode) != 1 {
 			return nil, errors.New("invalid usage of store.CreateUser")
 		}
-		err := s.WithTx(tx).UseInviteCode(ctx, inviteCode[0], int(id))
+		err := s.WithTx(tx).UseInviteCode(ctx, inviteCode[0], user.ID)
 		if err != nil {
 			tx.Rollback()
 			return nil, err
@@ -267,7 +259,7 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 
 func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE email = ?)
+	SELECT EXISTS (SELECT 1 FROM active_users WHERE email = ?)
 	`
 	var exists bool
 	err := s.db.GetContext(ctx, &exists, query, email)
@@ -279,7 +271,7 @@ func (s *Store) IsEmailTaken(ctx context.Context, email string) (bool, error) {
 
 func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (bool, error) {
 	const query = `
-	SELECT EXISTS (SELECT 1 FROM users WHERE phone_number = ?)
+	SELECT EXISTS (SELECT 1 FROM active_users WHERE phone_number = ?)
 	`
 	var exists bool
 	err := s.db.GetContext(ctx, &exists, query, phoneNumber)

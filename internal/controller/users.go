@@ -17,11 +17,11 @@ import (
 func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `page` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `page` param").Send(c)
 	}
 	size, err := strconv.Atoi(c.Query("size", "10"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
 	q := c.Query("query")
 	userTypes := c.Query("userTypes")
@@ -31,6 +31,7 @@ func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 	}
 	users, err := ctr.store.SearchUsers(c.Context(), q, userTypes, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if users == nil {
@@ -53,13 +54,14 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 	} else {
 		id, err = strconv.Atoi(c.Params("id"))
 		if err != nil {
-			return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+			return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `id` param").Send(c)
 		}
 		user, err = ctr.store.GetUser(c.Context(), id)
 		if errors.Is(err, store.ErrNotFound) {
 			return httperr.New(codes.Omit, http.StatusNotFound, "User was not found. Please try again").Send(c)
 		}
 		if err != nil {
+			ctr.lr.LogError(err, c.Request())
 			return errInternal.SetDetail(err).Send(c)
 		}
 	}
@@ -75,7 +77,7 @@ type updateUserPayload struct {
 func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	var p updateUserPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -87,9 +89,10 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	}
 	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.ProfileAvatar)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "User with such id was not found").Send(c)
 	}
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(user)
@@ -102,6 +105,7 @@ func (ctr *Ctr) SoftDeleteUser(c *fiber.Ctx) error {
 	}
 	err := ctr.store.SoftDeleteUser(c.Context(), user.ID)
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)
@@ -114,12 +118,13 @@ func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
 	}
 	err := ctr.store.UndeleteUser(c.Context(), user.ID)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "user with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "User with such id was not found").Send(c)
 	}
 	if errors.Is(err, store.ErrUserNotDeleted) {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "user with such id has not been deleted").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "User with such id has not been deleted").Send(c)
 	}
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return sendSuccess(c)

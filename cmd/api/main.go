@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 
+	"cloud.google.com/go/errorreporting"
 	"cloud.google.com/go/storage"
 	firebase "firebase.google.com/go/v4"
 	"github.com/finchatapp/finchat-api/internal/app"
 	"github.com/finchatapp/finchat-api/internal/appconfig"
 	"github.com/finchatapp/finchat-api/internal/controller"
+	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/messaging"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/internal/token"
@@ -60,8 +62,22 @@ func main() {
 	// Configure messaging service.
 	msg := messaging.New(appconfig.Config.Pubnub, s)
 
+	projectID := "finchat-api-staging"
+	errorClient, err := errorreporting.NewClient(context.Background(), projectID, errorreporting.Config{
+		ServiceName: "finchat-api",
+		OnError: func(err error) {
+			log.Fatal(err)
+		},
+	})
+	if err != nil {
+		log.Fatalf("failed to create error reporting client: %v", err)
+	}
+	defer errorClient.Close()
+
+	lr := logerr.New(errorClient)
+
 	// Setup application controller with its dependencies.
-	ctr := controller.New(s, tokenSvc, verifySvc, u, msg)
+	ctr := controller.New(s, tokenSvc, verifySvc, u, msg, lr)
 
 	// Configure and run fiber.
 	a := fiber.New()

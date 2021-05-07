@@ -20,11 +20,13 @@ func (ctr *Ctr) UploadProvileAvatar(c *fiber.Ctx) error {
 	}
 	f, err := file.Open()
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	filename := ctr.upload.ProfiveAvatarFileName(user, filepath.Ext(file.Filename))
 	err = ctr.upload.Upload(c.Context(), filename, f)
 	if err != nil {
+		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	return c.JSON(fiber.Map{"filename": filename})
