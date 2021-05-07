@@ -16,11 +16,11 @@ import (
 func (ctr *Ctr) ListThreads(c *fiber.Ctx) error {
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `page` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid page").Send(c)
 	}
 	size, err := strconv.Atoi(c.Query("size", "10"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid size").Send(c)
 	}
 	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
@@ -46,7 +46,7 @@ func (ctr *Ctr) GetThread(c *fiber.Ctx) error {
 	}
 	thread, err := ctr.store.GetThread(c.Context(), id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "Thread with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Thread was not found").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())

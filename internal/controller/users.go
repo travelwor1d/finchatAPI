@@ -89,7 +89,7 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	}
 	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.ProfileAvatar)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "User with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "User was not found").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
@@ -118,10 +118,10 @@ func (ctr *Ctr) UndeleteUser(c *fiber.Ctx) error {
 	}
 	err := ctr.store.UndeleteUser(c.Context(), user.ID)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "User with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "User has not been deleted").Send(c)
 	}
 	if errors.Is(err, store.ErrUserNotDeleted) {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "User with such id has not been deleted").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "User has not been deleted").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())

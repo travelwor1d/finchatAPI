@@ -124,7 +124,7 @@ func (ctr *Ctr) GetComment(c *fiber.Ctx) error {
 	}
 	comment, err := ctr.store.GetComment(c.Context(), postID, id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "Comment with such id was not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Comment was not found").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
