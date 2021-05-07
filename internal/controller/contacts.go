@@ -19,7 +19,7 @@ func (ctr *Ctr) ListContactsOrRequests(c *fiber.Ctx) error {
 	} else if requests == "false" {
 		return ctr.ListContacts(c)
 	}
-	return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `requests` param").Send(c)
+	return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `requests` param").Send(c)
 }
 
 func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
@@ -29,11 +29,11 @@ func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
 	}
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `page` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `page` param").Send(c)
 	}
 	size, err := strconv.Atoi(c.Query("size", "10"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
 	contacts, err := ctr.store.ListContacts(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
@@ -54,11 +54,11 @@ func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
 	}
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `id` param").Send(c)
 	}
 	contact, err := ctr.store.GetContact(c.Context(), user.ID, id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Contact with such id was not found").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
@@ -74,11 +74,11 @@ func (ctr *Ctr) ListContactRequests(c *fiber.Ctx) error {
 	}
 	page, err := strconv.Atoi(c.Query("page", "1"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `page` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `page` param").Send(c)
 	}
 	size, err := strconv.Atoi(c.Query("size", "10"))
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `size` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
 	contactRequests, err := ctr.store.ListContactRequests(c.Context(), user.ID, &store.Pagination{Limit: size, Offset: size * (page - 1)})
 	if err != nil {
@@ -138,15 +138,15 @@ func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	}
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `id` param").Send(c)
 	}
 
 	r, err := ctr.store.GetContactRequest(c.Context(), id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Contact with such id was not found").Send(c)
 	}
 	if user.ID != r.ContactID {
-		return httperr.New(codes.Omit, http.StatusForbidden, "cannot approve or deny not theirs contact request").Send(c)
+		return httperr.New(codes.Omit, http.StatusForbidden, "Cannot approve or deny not theirs contact request").Send(c)
 	}
 
 	if p.Status == "ACCEPTED" {
@@ -172,12 +172,12 @@ func (ctr *Ctr) DeleteContact(c *fiber.Ctx) error {
 	}
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "invalid `id` param").Send(c)
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `id` param").Send(c)
 	}
 
 	err = ctr.store.DeleteContact(c.Context(), user.ID, id)
 	if errors.Is(err, store.ErrNotFound) {
-		return httperr.New(codes.Omit, http.StatusNotFound, "not found").Send(c)
+		return httperr.New(codes.Omit, http.StatusNotFound, "Contact with such id was not found").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
