@@ -77,7 +77,7 @@ type updateUserPayload struct {
 func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	var p updateUserPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)

@@ -64,7 +64,7 @@ type createThreadPayload struct {
 func (ctr *Ctr) CreateThread(c *fiber.Ctx) error {
 	var p createThreadPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -93,7 +93,7 @@ type sendMessagePayload struct {
 func (ctr *Ctr) SendMessage(c *fiber.Ctx) error {
 	var p sendMessagePayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)

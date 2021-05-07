@@ -21,7 +21,7 @@ type registerPayload struct {
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	var p registerPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 
 	var userType string

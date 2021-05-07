@@ -27,7 +27,7 @@ func (ctr *Ctr) CreateUserWebhook(c *fiber.Ctx) error {
 	var p webhookPayload
 	if err := c.BodyParser(&p); err != nil {
 		log.Printf("Failed to parse body: %v", err)
-		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	err := ctr.store.SetFirebaseIDByEmail(c.Context(), p.FirebaseID, p.Email)
 	log.Printf("Some error here: %v", err)
@@ -52,7 +52,7 @@ func (ctr *Ctr) DeleteUserWebhook(c *fiber.Ctx) error {
 
 	var p webhookPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	err := ctr.store.DeleteUserByEmail(c.Context(), p.Email)
 	if errors.Is(err, store.ErrNotFound) {

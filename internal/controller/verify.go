@@ -31,7 +31,7 @@ type VerifyPayload struct {
 func (ctr *Ctr) Verify(c *fiber.Ctx) error {
 	var p VerifyPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {

@@ -21,7 +21,7 @@ type addCreditCardPayload struct {
 func (ctr *Ctr) AddCreditCard(c *fiber.Ctx) error {
 	var p addCreditCardPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -78,7 +78,7 @@ type createSubscriptionPlanPayload struct {
 func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 	var p createSubscriptionPlanPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -117,7 +117,7 @@ func (ctr *Ctr) CreateSubscriptionPlan(c *fiber.Ctx) error {
 func (ctr *Ctr) CreateSubscription(c *fiber.Ctx) error {
 	var p createSubscriptionPayload
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)

@@ -99,7 +99,7 @@ type createContactRequest struct {
 func (ctr *Ctr) CreateContactRequest(c *fiber.Ctx) error {
 	var p createContactRequest
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
@@ -126,7 +126,7 @@ type patchContactRequest struct {
 func (ctr *Ctr) PatchContactRequest(c *fiber.Ctx) error {
 	var p patchContactRequest
 	if err := c.BodyParser(&p); err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "failed to parse body", err).Send(c)
+		return errParseBody.SetDetail(err).Send(c)
 	}
 	if v := validate.Struct(p); !v.Validate() {
 		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)

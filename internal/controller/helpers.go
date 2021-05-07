@@ -12,7 +12,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-var errInternal = httperr.New(codes.Omit, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+var (
+	errInternal  = httperr.New(codes.Omit, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
+	errParseBody = httperr.New(codes.Omit, http.StatusBadRequest, "Failed to parse body")
+)
 
 func (ctr *Ctr) userFromCtx(c *fiber.Ctx) (*model.User, *httperr.HTTPErr) {
 	uid, ok := c.Locals("uid").(string)
