@@ -49,10 +49,8 @@ func Setup(app *fiber.App, ctr *controller.Ctr) {
 	apiv1.Patch("/users/me", ctr.UpdateUser)
 	apiv1.Delete("/users/me", ctr.SoftDeleteUser)
 
-	apiv1.Get("/users/me/contacts", ctr.ListContactsOrRequests)
+	apiv1.Get("/users/me/contacts", ctr.ListContacts)
 	apiv1.Get("/users/me/contacts/:id", ctr.GetContact)
-	apiv1.Post("/users/me/contacts", ctr.CreateContactRequest)
-	apiv1.Patch("/users/me/contacts/:id", ctr.PatchContactRequest)
 	apiv1.Delete("/users/me/contacts/:id", ctr.DeleteContact)
 
 	// Blogging API

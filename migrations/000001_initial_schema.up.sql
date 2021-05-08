@@ -19,7 +19,6 @@ CREATE TABLE users (
   deleted_at timestamp
 );
 
-
 CREATE VIEW active_users AS
 SELECT * FROM users
 WHERE is_active AND deleted_at IS NOT NULL;
@@ -32,7 +31,6 @@ CREATE TABLE users_contacts (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,
   user_id int unsigned NOT NULL,
   contact_id int unsigned NOT NULL,
-  request_status varchar(9) NOT NULL CHECK (request_status IN ('REQUESTED', 'ACCEPTED', 'DENIED')),
   created_at timestamp NOT NULL DEFAULT now(),
   updated_at timestamp NOT NULL DEFAULT now() ON UPDATE now(),
 
@@ -57,26 +55,7 @@ SELECT
   users_contacts.created_at,
   users_contacts.updated_at
 FROM users_contacts JOIN users ON users_contacts.contact_id = users.id
-WHERE request_status = 'ACCEPTED' AND users.deleted_at IS NULL;
-
-CREATE VIEW contact_requests AS
-SELECT
-	users_contacts.id,
-  users_contacts.user_id,
-  users_contacts.contact_id,
-  users_contacts.request_status,
-  users.first_name,
-  users.last_name,
-  users.phone_number,
-  users.country_code,
-  users.email,
-  users.user_type,
-  users.profile_avatar,
-  users.last_seen,
-  users_contacts.created_at,
-  users_contacts.updated_at
-FROM users_contacts JOIN users ON users_contacts.contact_id = users.id
-WHERE request_status IN ('REQUESTED', 'DENIED') AND users.deleted_at IS NULL;
+WHERE users.deleted_at IS NULL;
 
 CREATE TABLE goat_invite_codes (
   -- Generated on row creation.

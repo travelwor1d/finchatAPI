@@ -21,7 +21,7 @@ func (ctr *Ctr) UpvotePost(c *fiber.Ctx) error {
 	}
 	err = ctr.store.CreateUpvote(c.Context(), id, user.ID)
 	if errors.Is(err, store.ErrNoRowsAffected) {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "Already upvoted").Send(c)
+		return sendSuccess(c)
 	}
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "Post with such id was not found").Send(c)
@@ -60,7 +60,7 @@ func (ctr *Ctr) DownvotePost(c *fiber.Ctx) error {
 	}
 	err = ctr.store.CreateDownvote(c.Context(), id, user.ID)
 	if errors.Is(err, store.ErrNoRowsAffected) {
-		return httperr.New(codes.Omit, http.StatusBadRequest, "already downvoted").Send(c)
+		return sendSuccess(c)
 	}
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "Post with such id was not found").Send(c)
