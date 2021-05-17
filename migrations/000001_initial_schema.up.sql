@@ -8,6 +8,7 @@ CREATE TABLE users (
   last_name varchar(50) NOT NULL,
   phone_number varchar(40) NOT NULL UNIQUE,
   country_code char(2) NOT NULL,
+  username varchar(50) UNIQUE,
   email varchar(50) NOT NULL UNIQUE,
   is_verified boolean NOT NULL DEFAULT false,
   user_type varchar(4) NOT NULL CHECK (user_type IN ('GOAT', 'USER')),
@@ -21,11 +22,11 @@ CREATE TABLE users (
 
 CREATE VIEW active_users AS
 SELECT * FROM users
-WHERE is_active AND deleted_at IS NOT NULL;
+WHERE is_active AND deleted_at IS NULL;
 
 CREATE VIEW verified_active_users AS
 SELECT * FROM users
-WHERE is_verified AND is_active AND deleted_at IS NOT NULL;
+WHERE is_verified AND is_active AND deleted_at IS NULL;
 
 CREATE TABLE users_contacts (
   id int unsigned AUTO_INCREMENT PRIMARY KEY,

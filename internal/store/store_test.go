@@ -33,7 +33,7 @@ func TestStore(t *testing.T) {
 	})
 
 	t.Run("UpdateUser", func(t *testing.T) {
-		user, err := s.UpdateUser(context.Background(), 10, nil, nil, nil)
+		user, err := s.UpdateUser(context.Background(), 10, nil, nil, nil, nil)
 		if err != nil {
 			t.Error(err)
 		}

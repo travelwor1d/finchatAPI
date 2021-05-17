@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 )
@@ -59,17 +60,44 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, 
 	return &user, nil
 }
 
-func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, p *Pagination) ([]*model.User, error) {
+var space = regexp.MustCompile(`\s+`)
+
+func (s *Store) SearchUsers(ctx context.Context, userID int, searchInput, userTypes string, ignoreContacts bool, p *Pagination) ([]*model.User, error) {
+	// Remove all duplicate whitespace.
+	searchInput = space.ReplaceAllString(searchInput, " ")
 	query := fmt.Sprintf(`
-	SELECT * FROM verified_active_users
+	SELECT u.*, c.id IS NOT NULL AS is_contact FROM verified_active_users u
+	LEFT JOIN users_contacts c ON c.user_id = %d AND u.id = c.contact_id
 		WHERE (
-			lower(first_name) LIKE '%s' OR
-			lower(last_name) LIKE '%s'
+			username LIKE '%s' OR
+			lower(concat(first_name, ' ', last_name)) LIKE '%s' OR
+			lower(concat(last_name, ' ', first_name)) LIKE '%s' OR
+			email = '%s' OR
+			phone_number = '%s'
 		) AND user_type IN (%s)
+	ORDER BY first_name ASC, last_name ASC
 	LIMIT ? OFFSET ?
-	`, "%"+searchInput+"%", "%"+searchInput+"%", userTypes)
+	`, userID, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, searchInput, userTypes)
+	ignoreContactsQuery := fmt.Sprintf(`
+	SELECT u.* FROM verified_active_users u
+	JOIN users_contacts c ON u.id <> c.contact_id OR c.user_id <> 5
+		WHERE (
+			username LIKE '%s' OR
+			lower(concat(first_name, ' ', last_name)) LIKE '%s' OR
+			lower(concat(last_name, ' ', first_name)) LIKE '%s' OR
+			email = '%s' OR
+			phone_number = '%s'
+		) AND user_type IN (%s)
+	ORDER BY first_name ASC, last_name ASC
+	LIMIT ? OFFSET ?
+	`, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, searchInput, userTypes)
 	var users []*model.User
-	err := s.db.SelectContext(ctx, &users, query, p.Limit, p.Offset)
+	var err error
+	if ignoreContacts {
+		err = s.db.SelectContext(ctx, &users, ignoreContactsQuery, p.Limit, p.Offset)
+	} else {
+		err = s.db.SelectContext(ctx, &users, query, p.Limit, p.Offset)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -78,14 +106,15 @@ func (s *Store) SearchUsers(ctx context.Context, searchInput, userTypes string, 
 
 func (s *Store) UpsertUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
-	INSERT INTO users(first_name, last_name, phone_number, country_code, email, user_type, profile_avatar)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
+	INSERT INTO users(first_name, last_name, phone_number, country_code, email, username, user_type, profile_avatar)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	ON DUPLICATE KEY UPDATE
 		first_name = VALUES(first_name),
 		last_name = VALUES(last_name),
 		phone_number = VALUES(phone_number),
 		country_code = VALUES(country_code),
 		email = VALUES(email),
+		username = VALUES(username),
 		user_type = VALUES(user_type),
 		profile_avatar = VALUES(profile_avatar)
 	`
@@ -94,7 +123,9 @@ func (s *Store) UpsertUser(ctx context.Context, user *model.User, inviteCode ...
 		return nil, err
 	}
 
-	_, err = tx.ExecContext(ctx, query, user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Type, user.ProfileAvatar)
+	_, err = tx.ExecContext(ctx, query,
+		user.FirstName, user.LastName, user.Phonenumber, user.CountryCode, user.Email, user.Username, user.Type, user.ProfileAvatar,
+	)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -123,7 +154,7 @@ func (s *Store) UpsertUser(ctx context.Context, user *model.User, inviteCode ...
 	return user, nil
 }
 
-func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName, profileAvatar *string) (*model.User, error) {
+func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName, username, profileAvatar *string) (*model.User, error) {
 	isDeleted, err := s.isUserDeleted(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -135,10 +166,11 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 	UPDATE verified_active_users SET
 		first_name = coalesce(?, first_name),
 		last_name = coalesce(?, last_name),
+		username = coalesce(?, username),
 		profile_avatar = coalesce(?, profile_avatar)
 	WHERE id = ?
 	`
-	result, err := s.db.ExecContext(ctx, query, firstName, lastName, profileAvatar, userID)
+	result, err := s.db.ExecContext(ctx, query, firstName, lastName, username, profileAvatar, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -275,6 +307,18 @@ func (s *Store) IsPhoneNumberTaken(ctx context.Context, phoneNumber string) (boo
 	`
 	var exists bool
 	err := s.db.GetContext(ctx, &exists, query, phoneNumber)
+	if err != nil {
+		return false, err
+	}
+	return exists, nil
+}
+
+func (s *Store) IsUsernameTaken(ctx context.Context, username string) (bool, error) {
+	const query = `
+	SELECT EXISTS (SELECT 1 FROM users WHERE username = ?)
+	`
+	var exists bool
+	err := s.db.GetContext(ctx, &exists, query, username)
 	if err != nil {
 		return false, err
 	}

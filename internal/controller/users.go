@@ -23,13 +23,23 @@ func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
+	var ignoreContacts bool
+	if c.Query("ignoreContacts", "false") == "true" {
+		ignoreContacts = true
+	}
 	q := c.Query("query")
 	userTypes := c.Query("userTypes")
 	userTypes, err = getUserTypes(userTypes)
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, err.Error()).Send(c)
 	}
-	users, err := ctr.store.SearchUsers(c.Context(), q, userTypes, &store.Pagination{Limit: size, Offset: size * (page - 1)})
+	user, httpErr := ctr.userFromCtx(c)
+	if httpErr != nil {
+		return httpErr.Send(c)
+	}
+	users, err := ctr.store.SearchUsers(c.Context(), user.ID, q, userTypes, ignoreContacts,
+		&store.Pagination{Limit: size, Offset: size * (page - 1)},
+	)
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
@@ -48,7 +58,7 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 	var httpErr *httperr.HTTPErr
 	if strings.HasSuffix(c.Path(), "/me") {
 		user, httpErr = ctr.userFromCtx(c)
-		if err != nil {
+		if httpErr != nil {
 			return httpErr.Send(c)
 		}
 	} else {
@@ -71,6 +81,7 @@ func (ctr *Ctr) GetUser(c *fiber.Ctx) error {
 type updateUserPayload struct {
 	FirstName     *string `json:"firstName" validate:"-"`
 	LastName      *string `json:"lastName" validate:"-"`
+	Username      *string `json:"username" validate:"-"`
 	ProfileAvatar *string `json:"profileAvatar" validate:"-"`
 }
 
@@ -87,7 +98,7 @@ func (ctr *Ctr) UpdateUser(c *fiber.Ctx) error {
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.ProfileAvatar)
+	user, err := ctr.store.UpdateUser(c.Context(), user.ID, p.FirstName, p.LastName, p.Username, p.ProfileAvatar)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "User was not found").Send(c)
 	}

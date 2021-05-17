@@ -12,6 +12,7 @@ type User struct {
 	Phonenumber   string     `db:"phone_number" json:"phoneNumber"`
 	CountryCode   string     `db:"country_code" json:"countryCode"`
 	Email         string     `db:"email" json:"email"`
+	Username      *string    `db:"username" json:"username"`
 	IsVerified    bool       `db:"is_verified" json:"isVerified"`
 	Type          string     `db:"user_type" json:"userType"`
 	ProfileAvatar *string    `db:"profile_avatar" json:"profileAvatar"`
@@ -19,4 +20,5 @@ type User struct {
 	CreatedAt     time.Time  `db:"created_at" json:"createdAt"`
 	UpdatedAt     time.Time  `db:"updated_at" json:"updatedAt"`
 	DeletedAt     *time.Time `db:"deleted_at" json:"deletedAt,omitempty"`
+	IsContact     *bool      `db:"is_contact" json:"isContact,omitempty"`
 }

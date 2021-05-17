@@ -15,7 +15,8 @@ type registerPayload struct {
 	FirstName string `json:"firstName" validate:"required|alpha"`
 	LastName  string `json:"lastName" validate:"required|alpha"`
 	Phone
-	Email string `json:"email" validate:"required|email"`
+	Email    string  `json:"email" validate:"required|email"`
+	Username *string `json:"username" validate:"maxLength:15"`
 }
 
 func (ctr *Ctr) Register(c *fiber.Ctx) error {
@@ -59,6 +60,12 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		return httperr.NewValidationErr(nil, "First or last names on Finchat can't have too many characters").Send(c)
 	}
 
+	user := &model.User{
+		FirstName: p.FirstName, LastName: p.LastName,
+		Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode,
+		Email: sanitizeEmail(p.Email), Username: p.Username,
+		Type: userType,
+	}
 	isTaken, err := ctr.store.IsEmailTaken(c.Context(), p.Email)
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
@@ -66,15 +73,38 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 	}
 	if isTaken {
 		return httperr.New(
-			codes.EmailAlreadyTaken,
+			codes.Omit,
 			http.StatusBadRequest,
-			"User with provided email or phone number already exists",
+			"User with provided email already exists",
 		).Send(c)
 	}
-
-	user := &model.User{
-		FirstName: p.FirstName, LastName: p.LastName, Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode, Email: sanitizeEmail(p.Email), Type: userType,
+	isTaken, err = ctr.store.IsPhoneNumberTaken(c.Context(), p.formattedPhonenumber())
+	if err != nil {
+		ctr.lr.LogError(err, c.Request())
+		return errInternal.SetDetail(err).Send(c)
 	}
+	if isTaken {
+		return httperr.New(
+			codes.Omit,
+			http.StatusBadRequest,
+			"User with provided phone number already exists",
+		).Send(c)
+	}
+	if user.Username != nil {
+		isTaken, err = ctr.store.IsUsernameTaken(c.Context(), *p.Username)
+		if err != nil {
+			ctr.lr.LogError(err, c.Request())
+			return errInternal.SetDetail(err).Send(c)
+		}
+		if isTaken {
+			return httperr.New(
+				codes.Omit,
+				http.StatusBadRequest,
+				"User with provided username already exists",
+			).Send(c)
+		}
+	}
+
 	user, err = ctr.store.UpsertUser(c.Context(), user, inviteCode)
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
@@ -123,6 +153,21 @@ func (ctr *Ctr) PhonenumberValidation(c *fiber.Ctx) error {
 	}
 	if taken {
 		return c.JSON(fiber.Map{"isTaken": true, "message": "A user already exists with this phone number"})
+	}
+	return c.JSON(fiber.Map{"isTaken": false, "message": ""})
+}
+
+func (ctr *Ctr) UsernameValidation(c *fiber.Ctx) error {
+	username := c.Query("username")
+	if !validate.IsAlphaNum(username) || !validate.MaxLength(username, 15) {
+		return httperr.New(codes.Omit, http.StatusBadRequest, "Please enter a valid username").Send(c)
+	}
+	taken, err := ctr.store.IsUsernameTaken(c.Context(), username)
+	if err != nil {
+		return errInternal.SetDetail(err).Send(c)
+	}
+	if taken {
+		return c.JSON(fiber.Map{"isTaken": true, "message": "A user already exists with this username"})
 	}
 	return c.JSON(fiber.Map{"isTaken": false, "message": ""})
 }
