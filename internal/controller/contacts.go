@@ -9,6 +9,7 @@ import (
 	"github.com/finchatapp/finchat-api/pkg/codes"
 	"github.com/finchatapp/finchat-api/pkg/httperr"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gookit/validate"
 )
 
 func (ctr *Ctr) ListContacts(c *fiber.Ctx) error {
@@ -48,6 +49,36 @@ func (ctr *Ctr) GetContact(c *fiber.Ctx) error {
 	contact, err := ctr.store.GetContact(c.Context(), user.ID, id)
 	if errors.Is(err, store.ErrNotFound) {
 		return httperr.New(codes.Omit, http.StatusNotFound, "Contact with such id was not found").Send(c)
+	}
+	if err != nil {
+		ctr.lr.LogError(err, c.Request())
+		return errInternal.SetDetail(err).Send(c)
+	}
+	return c.JSON(contact)
+}
+
+type createContactPayload struct {
+	ContactID int `json:"contactId" validate:"required"`
+}
+
+func (ctr *Ctr) CreateContact(c *fiber.Ctx) error {
+	user, httpErr := ctr.userFromCtx(c)
+	if httpErr != nil {
+		return httpErr.Send(c)
+	}
+	var p createContactPayload
+	if err := c.BodyParser(&p); err != nil {
+		return errParseBody.SetDetail(err).Send(c)
+	}
+	if v := validate.Struct(p); !v.Validate() {
+		return httperr.New(codes.Omit, http.StatusBadRequest, v.Errors.One()).Send(c)
+	}
+	contact, err := ctr.store.CreateContact(c.Context(), user.ID, p.ContactID)
+	if errors.Is(err, store.ErrNotFound) {
+		return httperr.New(codes.Omit, http.StatusNotFound, "No user with such id").Send(c)
+	}
+	if errors.Is(err, store.ErrAlreadyExists) {
+		return httperr.New(codes.Omit, http.StatusConflict, "This user is already in your contacts").Send(c)
 	}
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())

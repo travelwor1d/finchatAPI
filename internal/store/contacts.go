@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/finchatapp/finchat-api/internal/model"
+	"github.com/go-sql-driver/mysql"
 )
 
 func (s *Store) ListContacts(ctx context.Context, contactOwnerID int, p *Pagination) ([]*model.Contact, error) {
@@ -33,6 +34,32 @@ func (s *Store) GetContact(ctx context.Context, userID, id int) (*model.Contact,
 		return nil, err
 	}
 	return &c, nil
+}
+
+func (s *Store) CreateContact(ctx context.Context, userID, contactID int) (*model.Contact, error) {
+	_, err := s.GetUser(ctx, contactID)
+	if err != nil {
+		return nil, err
+	}
+	const query = `
+	INSERT INTO users_contacts(user_id, contact_id) VALUES (?, ?)
+	`
+	result, err := s.db.ExecContext(ctx, query, userID, contactID)
+	if err != nil {
+		me, ok := err.(*mysql.MySQLError)
+		if !ok {
+			return nil, err
+		}
+		if me.Number == 1062 {
+			return nil, ErrAlreadyExists
+		}
+		return nil, err
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	return s.GetContact(ctx, userID, int(id))
 }
 
 func (s *Store) DeleteContact(ctx context.Context, userID, id int) error {
