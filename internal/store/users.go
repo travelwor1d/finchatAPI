@@ -61,8 +61,11 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, 
 }
 
 var space = regexp.MustCompile(`\s+`)
+var spaceOrPlus = regexp.MustCompile(`[ +]`)
 
 func (s *Store) SearchUsers(ctx context.Context, userID int, searchInput, userTypes string, ignoreContacts bool, p *Pagination) ([]*model.User, error) {
+	// Remove all duplicate whitespace.
+	phoneNumber := spaceOrPlus.ReplaceAllString(searchInput, "")
 	// Remove all duplicate whitespace.
 	searchInput = space.ReplaceAllString(searchInput, " ")
 	query := fmt.Sprintf(`
@@ -73,11 +76,11 @@ func (s *Store) SearchUsers(ctx context.Context, userID int, searchInput, userTy
 			lower(concat(first_name, ' ', last_name)) LIKE '%s' OR
 			lower(concat(last_name, ' ', first_name)) LIKE '%s' OR
 			email = '%s' OR
-			phone_number = '%s'
+			phone_number LIKE '%s'
 		) AND user_type IN (%s)
 	ORDER BY first_name ASC, last_name ASC
 	LIMIT ? OFFSET ?
-	`, userID, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, searchInput, userTypes)
+	`, userID, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, "%"+phoneNumber+"%", userTypes)
 	ignoreContactsQuery := fmt.Sprintf(`
 	SELECT u.* FROM verified_active_users u
 	JOIN users_contacts c ON u.id <> c.contact_id OR c.user_id <> 5
@@ -90,7 +93,7 @@ func (s *Store) SearchUsers(ctx context.Context, userID int, searchInput, userTy
 		) AND user_type IN (%s)
 	ORDER BY first_name ASC, last_name ASC
 	LIMIT ? OFFSET ?
-	`, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, searchInput, userTypes)
+	`, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, "%"+phoneNumber+"%", userTypes)
 	var users []*model.User
 	var err error
 	if ignoreContacts {

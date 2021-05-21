@@ -7,7 +7,7 @@ type Contact struct {
 	ContactOwnerID int       `db:"user_id" json:"contactOwnerId"`
 	ContactID      int       `db:"contact_id" json:"contactId"`
 	FirstName      string    `db:"first_name" json:"firstName"`
-	LastName       string    `db:"last_name" json:"lastname"`
+	LastName       string    `db:"last_name" json:"lastName"`
 	Phonenumber    string    `db:"phone_number" json:"phoneNumber"`
 	CountryCode    string    `db:"country_code" json:"countryCode"`
 	Email          string    `db:"email" json:"email"`
