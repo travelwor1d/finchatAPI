@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"github.com/finchatapp/finchat-api/internal/entities/contact"
+	"github.com/finchatapp/finchat-api/internal/entities/user"
 	"github.com/finchatapp/finchat-api/internal/logerr"
 	"github.com/finchatapp/finchat-api/internal/messaging"
 	"github.com/finchatapp/finchat-api/internal/store"
@@ -16,10 +18,29 @@ type Ctr struct {
 	upload   upload.Uploader
 	msg      messaging.Messager
 	lr       *logerr.Logerr
+	contact  contact.Usecase
+	user     user.Usecase
 }
 
-func New(s *store.Store, t token.Service, v verify.Verifier, u upload.Uploader, msg messaging.Messager, lr *logerr.Logerr) *Ctr {
-	return &Ctr{s, t, v, u, msg, lr}
+func New(s *store.Store,
+	contactUsecase contact.Usecase,
+	userUsecase user.Usecase,
+	t token.Service,
+	v verify.Verifier,
+	u upload.Uploader,
+	msg messaging.Messager,
+	lr *logerr.Logerr,
+) *Ctr {
+	return &Ctr{
+		store:    s,
+		contact:  contactUsecase,
+		user:     userUsecase,
+		tokenSvc: t,
+		verify:   v,
+		upload:   u,
+		msg:      msg,
+		lr:       lr,
+	}
 }
 
 func (ctr *Ctr) TokenSvc() token.Service {

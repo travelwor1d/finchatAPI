@@ -6,11 +6,13 @@ require (
 	cloud.google.com/go v0.82.0
 	cloud.google.com/go/storage v1.15.0
 	firebase.google.com/go/v4 v4.5.0
+	github.com/Masterminds/squirrel v1.5.0
 	github.com/andybalholm/brotli v1.0.2 // indirect
 	github.com/brianolson/cbor_go v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gofiber/fiber/v2 v2.10.0
+	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gookit/goutil v0.3.13 // indirect
 	github.com/gookit/validate v1.2.11
@@ -26,6 +28,7 @@ require (
 	github.com/nyaruka/phonenumbers v1.0.69
 	github.com/pelletier/go-toml v1.9.1 // indirect
 	github.com/pubnub/go v4.10.0+incompatible
+	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.3.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

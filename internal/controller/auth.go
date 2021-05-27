@@ -60,10 +60,12 @@ func (ctr *Ctr) Register(c *fiber.Ctx) error {
 		return httperr.NewValidationErr(nil, "First or last names on Finchat can't have too many characters").Send(c)
 	}
 
+	p.Email = sanitizeEmail(p.Email)
+
 	user := &model.User{
 		FirstName: p.FirstName, LastName: p.LastName,
 		Phonenumber: p.formattedPhonenumber(), CountryCode: p.CountryCode,
-		Email: sanitizeEmail(p.Email), Username: p.Username,
+		Email: p.Email, Username: p.Username,
 		Type: userType,
 	}
 	isTaken, err := ctr.store.IsEmailTaken(c.Context(), p.Email)

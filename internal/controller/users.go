@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	srequest "github.com/finchatapp/finchat-api/internal/entities/_shared/models/request"
 	"github.com/finchatapp/finchat-api/internal/model"
 	"github.com/finchatapp/finchat-api/internal/store"
 	"github.com/finchatapp/finchat-api/pkg/codes"
@@ -23,32 +24,55 @@ func (ctr *Ctr) ListUsers(c *fiber.Ctx) error {
 	if err != nil {
 		return httperr.New(codes.Omit, http.StatusBadRequest, "Invalid `size` param").Send(c)
 	}
-	var ignoreContacts bool
-	if c.Query("ignoreContacts", "false") == "true" {
-		ignoreContacts = true
-	}
-	q := c.Query("query")
-	userTypes := c.Query("userTypes")
-	userTypes, err = getUserTypes(userTypes)
-	if err != nil {
-		return httperr.New(codes.Omit, http.StatusBadRequest, err.Error()).Send(c)
-	}
 	user, httpErr := ctr.userFromCtx(c)
 	if httpErr != nil {
 		return httpErr.Send(c)
 	}
-	users, err := ctr.store.SearchUsers(c.Context(), user.ID, q, userTypes, ignoreContacts,
-		&store.Pagination{Limit: size, Offset: size * (page - 1)},
-	)
+
+	req := srequest.NewGridList{
+		PageSize:   size,
+		PageNumber: page,
+	}
+	req.CustomFilters = make([]srequest.CustomFilterItem, 0)
+	req.CustomFilters = append(req.CustomFilters, srequest.CustomFilterItem{
+		Name:   "userTypes",
+		Values: getUserTypes(c.Query("userTypes")),
+	})
+	{
+		customFilters := strings.Split(c.Query("filters", ""), ",")
+		for _, v := range customFilters {
+			if v != "" {
+				req.CustomFilters = append(req.CustomFilters, srequest.CustomFilterItem{
+					Name:   v,
+					Values: []string{"true"},
+				})
+			}
+		}
+	}
+	req.CustomFilters = append(req.CustomFilters, srequest.CustomFilterItem{
+		Name:   "query",
+		Values: []string{c.Query("query")},
+	})
+	req.Sorts = make([]srequest.SortItem, 0)
+	req.Sorts = append(req.Sorts, srequest.SortItem{
+		Field: "last_name",
+		Dir:   "asc",
+	})
+	req.Sorts = append(req.Sorts, srequest.SortItem{
+		Field: "first_name",
+		Dir:   "asc",
+	})
+	paging, users, err := ctr.user.SearchUsers(c.Context(), user.ID, req)
+
 	if err != nil {
 		ctr.lr.LogError(err, c.Request())
 		return errInternal.SetDetail(err).Send(c)
 	}
 	if users == nil {
 		// Return an empty array.
-		return c.JSON(fiber.Map{"users": []interface{}{}})
+		return c.JSON(fiber.Map{"users": []interface{}{}, "paging": new(interface{})})
 	}
-	return c.JSON(fiber.Map{"users": users})
+	return c.JSON(fiber.Map{"users": users, "paging": paging})
 }
 
 func (ctr *Ctr) GetUser(c *fiber.Ctx) error {

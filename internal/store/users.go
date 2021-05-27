@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/finchatapp/finchat-api/internal/model"
 )
@@ -62,50 +62,6 @@ func (s *Store) GetUserByEmail(ctx context.Context, email string) (*model.User, 
 
 var space = regexp.MustCompile(`\s+`)
 var spaceOrPlus = regexp.MustCompile(`[ +]`)
-
-func (s *Store) SearchUsers(ctx context.Context, userID int, searchInput, userTypes string, ignoreContacts bool, p *Pagination) ([]*model.User, error) {
-	// Remove all duplicate whitespace.
-	phoneNumber := spaceOrPlus.ReplaceAllString(searchInput, "")
-	// Remove all duplicate whitespace.
-	searchInput = space.ReplaceAllString(searchInput, " ")
-	query := fmt.Sprintf(`
-	SELECT u.*, c.id IS NOT NULL AS is_contact FROM verified_active_users u
-	LEFT JOIN users_contacts c ON c.user_id = %d AND u.id = c.contact_id
-		WHERE (
-			username LIKE '%s' OR
-			lower(concat(first_name, ' ', last_name)) LIKE '%s' OR
-			lower(concat(last_name, ' ', first_name)) LIKE '%s' OR
-			email = '%s' OR
-			phone_number LIKE '%s'
-		) AND user_type IN (%s)
-	ORDER BY first_name ASC, last_name ASC
-	LIMIT ? OFFSET ?
-	`, userID, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, "%"+phoneNumber+"%", userTypes)
-	ignoreContactsQuery := fmt.Sprintf(`
-	SELECT u.* FROM verified_active_users u
-	JOIN users_contacts c ON u.id <> c.contact_id OR c.user_id <> 5
-		WHERE (
-			username LIKE '%s' OR
-			lower(concat(first_name, ' ', last_name)) LIKE '%s' OR
-			lower(concat(last_name, ' ', first_name)) LIKE '%s' OR
-			email = '%s' OR
-			phone_number = '%s'
-		) AND user_type IN (%s)
-	ORDER BY first_name ASC, last_name ASC
-	LIMIT ? OFFSET ?
-	`, "%"+searchInput+"%", "%"+searchInput+"%", "%"+searchInput+"%", searchInput, "%"+phoneNumber+"%", userTypes)
-	var users []*model.User
-	var err error
-	if ignoreContacts {
-		err = s.db.SelectContext(ctx, &users, ignoreContactsQuery, p.Limit, p.Offset)
-	} else {
-		err = s.db.SelectContext(ctx, &users, query, p.Limit, p.Offset)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
-}
 
 func (s *Store) UpsertUser(ctx context.Context, user *model.User, inviteCode ...string) (*model.User, error) {
 	const query = `
@@ -166,7 +122,7 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 		return nil, ErrUserDeleted
 	}
 	const query = `
-	UPDATE verified_active_users SET
+	UPDATE core.users SET
 		first_name = coalesce(?, first_name),
 		last_name = coalesce(?, last_name),
 		username = coalesce(?, username),
@@ -186,6 +142,32 @@ func (s *Store) UpdateUser(ctx context.Context, userID int, firstName, lastName,
 	}
 	return s.GetUser(ctx, userID)
 }
+func (s *Store) UpdateLastSeenUser(ctx context.Context, userID int, lastSeen time.Time) error {
+	isDeleted, err := s.isUserDeleted(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if isDeleted {
+		return ErrUserDeleted
+	}
+	const query = `
+	UPDATE core.users SET
+		last_seen = ?
+	WHERE id = ?
+	`
+	result, err := s.db.ExecContext(ctx, query, lastSeen, userID)
+	if err != nil {
+		return err
+	}
+	r, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if r == 0 {
+		return ErrNoRowsAffected
+	}
+	return nil
+}
 
 func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
 	isDeleted, err := s.isUserDeleted(ctx, userID)
@@ -197,7 +179,7 @@ func (s *Store) SoftDeleteUser(ctx context.Context, userID int) error {
 		return ErrUserDeleted
 	}
 	const query = `
-	UPDATE verified_active_users SET
+	UPDATE core.users SET
 		deleted_at = now()
 	WHERE id = ?
 	`
@@ -274,7 +256,7 @@ func (s *Store) SetStripeID(ctx context.Context, userID int, stripeID string) er
 		return ErrUserDeleted
 	}
 	const query = `
-	UPDATE verified_active_users SET
+	UPDATE core.users SET
 		stripe_id = ?
 	WHERE id = ?
 	`

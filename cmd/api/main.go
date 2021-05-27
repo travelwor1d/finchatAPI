@@ -18,8 +18,16 @@ import (
 	"github.com/finchatapp/finchat-api/internal/upload"
 	"github.com/finchatapp/finchat-api/internal/verify"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jmoiron/sqlx"
 	"github.com/kevinburke/twilio-go"
+	"github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/v72"
+
+	contactrepo "github.com/finchatapp/finchat-api/internal/entities/contact/repositories"
+	contactusecase "github.com/finchatapp/finchat-api/internal/entities/contact/usecase"
+
+	userrepo "github.com/finchatapp/finchat-api/internal/entities/user/repositories"
+	userusecase "github.com/finchatapp/finchat-api/internal/entities/user/usecase"
 )
 
 func main() {
@@ -76,8 +84,21 @@ func main() {
 
 	lr := logerr.New(errorClient)
 
+	// tmp code injection
+	dsn := appconfig.Config.MySQL.ConnectionString
+	master, err := sqlx.Connect("mysql", dsn)
+	if err != nil {
+		logrus.Fatal("master db connection", err)
+	}
+	defer master.Close()
+
+	dbs := []*sqlx.DB{master}
+	contactuc := contactusecase.New(contactrepo.New(dbs))
+	useruc := userusecase.New(userrepo.New(dbs))
+	// tmp code injection
+
 	// Setup application controller with its dependencies.
-	ctr := controller.New(s, tokenSvc, verifySvc, u, msg, lr)
+	ctr := controller.New(s, contactuc, useruc, tokenSvc, verifySvc, u, msg, lr)
 
 	// Configure and run fiber.
 	a := fiber.New()
